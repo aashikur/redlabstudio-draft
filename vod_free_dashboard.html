@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RedLab Studio — ফ্রি ক্লাস ড্যাশবোর্ড</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Syne:wght@700;800&family=Noto+Serif:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#E5342A;--red-d:#C0281F;--red-l:#FF6B5E;--red-bg:#FFF1F0;
+  --dark:#0A0A0A;--dark2:#111;--dark3:#1C1C1C;
+  --gray:#6B6B6B;--gray-l:#E4E4E4;--bg:#F2F2F0;
+  --white:#fff;--green:#10B981;--amber:#F59E0B;--blue:#3B82F6;
+  --border:rgba(0,0,0,0.08);--sh:0 2px 16px rgba(0,0,0,0.07);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;}
+
+/* ── ACCESS GATE ── */
+.gate{position:fixed;inset:0;background:var(--dark);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+.gate-box{background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px 28px;width:100%;max-width:400px;text-align:center;}
+.gate-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;}
+.gate-mark{width:40px;height:40px;background:var(--red);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne','Hind Siliguri',sans-serif;font-weight:800;font-size:14px;color:white;}
+.gate-name{font-family:'Syne','Hind Siliguri',sans-serif;font-size:16px;font-weight:800;color:white;}
+.gate-name span{color:var(--red);}
+.gate h2{font-family:'Syne','Hind Siliguri',sans-serif;font-size:22px;font-weight:800;color:white;margin-bottom:6px;}
+.gate-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:24px;line-height:1.6;}
+.gate-field{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:white;font-family:'Hind Siliguri',sans-serif;margin-bottom:10px;outline:none;transition:border-color .2s;}
+.gate-field::placeholder{color:rgba(255,255,255,0.25);}
+.gate-field:focus{border-color:rgba(229,52,42,0.5);}
+.gate-btn{width:100%;background:var(--red);color:white;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;font-family:'Syne','Hind Siliguri',sans-serif;cursor:pointer;transition:all .2s;margin-top:4px;}
+.gate-btn:hover{background:var(--red-d);}
+.gate-trust{font-size:11px;color:rgba(255,255,255,0.25);margin-top:12px;}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--dark);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:800;border-bottom:1px solid rgba(255,255,255,0.06);}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-mark{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne','Hind Siliguri',sans-serif;font-weight:800;font-size:12px;color:white;}
+.tb-name{font-family:'Syne','Hind Siliguri',sans-serif;font-size:14px;font-weight:800;color:white;}
+.tb-name span{color:var(--red);}
+.tb-badge{background:rgba(229,52,42,0.15);border:1px solid rgba(229,52,42,0.25);color:var(--red);font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;}
+.tb-user{display:flex;align-items:center;gap:8px;}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;}
+.tb-username{font-size:12px;color:rgba(255,255,255,0.6);display:none;}
+@media(min-width:600px){.tb-username{display:block;}}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 56px);}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--dark2);border-right:1px solid rgba(255,255,255,0.05);padding:24px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;display:flex;flex-direction:column;}
+@media(max-width:768px){.sidebar{display:none;}}
+.sb-section{padding:0 16px;margin-bottom:8px;}
+.sb-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .15s;font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:2px;position:relative;}
+.sb-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.sb-item.active{background:rgba(229,52,42,0.15);color:white;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--red);border-radius:0 2px 2px 0;}
+.sb-icon{font-size:15px;width:20px;text-align:center;}
+.sb-lock{margin-left:auto;font-size:12px;opacity:.4;}
+.sb-progress{margin:0 16px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:16px;}
+.sb-prog-label{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;display:flex;justify-content:space-between;}
+.sb-prog-bar{background:rgba(255,255,255,0.08);border-radius:99px;height:5px;}
+.sb-prog-fill{height:5px;border-radius:99px;background:var(--green);transition:width .5s;}
+.sb-enroll-cta{margin:auto 16px 16px;background:var(--red);border:none;color:white;border-radius:10px;padding:12px;font-size:13px;font-weight:700;font-family:'Syne','Hind Siliguri',sans-serif;cursor:pointer;width:calc(100% - 32px);transition:all .2s;}
+.sb-enroll-cta:hover{background:var(--red-d);}
+
+/* ── MAIN CONTENT ── */
+.main{overflow-y:auto;}
+
+/* ── WELCOME BANNER ── */
+.welcome{background:var(--dark);padding:28px 28px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.welcome-inner{max-width:800px;}
+.welcome-tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin-bottom:8px;}
+.welcome-h{font-family:'Syne','Hind Siliguri',sans-serif;font-size:clamp(18px,4vw,26px);font-weight:800;color:white;margin-bottom:6px;}
+.welcome-sub{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;line-height:1.6;}
+.welcome-tabs{display:flex;gap:0;border-bottom:none;}
+.wtab{padding:10px 18px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.wtab:hover{color:rgba(255,255,255,0.7);}
+.wtab.active{color:white;border-bottom-color:var(--red);}
+
+/* ── CONTENT PANELS ── */
+.content{padding:24px 28px;max-width:900px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── CLASS CARD ── */
+.class-grid{display:flex;flex-direction:column;gap:12px;}
+.class-card{background:white;border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:box-shadow .2s;display:flex;align-items:stretch;}
+.class-card:hover{box-shadow:var(--sh);}
+.class-card.locked{opacity:.65;}
+.cc-num{width:56px;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:4px;}
+.cc-num-txt{font-family:'Noto Serif',serif;font-size:18px;font-weight:600;color:white;}
+.cc-num-lbl{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:.05em;text-transform:uppercase;}
+.cc-num.free{background:linear-gradient(180deg,var(--red) 0%,var(--red-d) 100%);}
+.cc-body{flex:1;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.cc-info{flex:1;}
+.cc-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+.cc-desc{font-size:12px;color:var(--gray);line-height:1.5;}
+.cc-meta{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.cc-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+.cc-tag.free{background:rgba(16,185,129,0.1);color:var(--green);}
+.cc-tag.locked{background:rgba(0,0,0,0.06);color:#999;}
+.cc-duration{font-size:11px;color:#999;display:flex;align-items:center;gap:4px;}
+.cc-action{flex-shrink:0;}
+.cc-btn{padding:8px 18px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:'Hind Siliguri',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.cc-btn.play{background:var(--red);color:white;}
+.cc-btn.play:hover{background:var(--red-d);}
+.cc-btn.done{background:rgba(16,185,129,0.1);color:var(--green);}
+.cc-btn.unlock{background:var(--dark);color:white;}
+.cc-btn.unlock:hover{background:#333;}
+
+/* ── VIDEO PLAYER AREA ── */
+.player-wrap{background:var(--dark);border-radius:16px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.player-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);}
+.player-title{font-size:14px;font-weight:700;color:white;}
+.player-badge{font-size:10px;font-weight:700;background:var(--red);color:white;padding:3px 10px;border-radius:6px;}
+.player-video{position:relative;padding-bottom:56.25%;background:#000;}
+.player-video iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.player-thumb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d0d0d,#1a0808);cursor:pointer;}
+.player-play{width:64px;height:64px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px rgba(229,52,42,0.15);transition:transform .2s;}
+.player-thumb:hover .player-play{transform:scale(1.08);}
+.player-play svg{width:26px;height:26px;fill:white;margin-left:4px;}
+.player-sub-label{font-size:12px;color:rgba(255,255,255,0.5);margin-top:14px;}
+.player-footer{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.player-nav{display:flex;gap:8px;}
+.pf-btn{padding:7px 14px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:'Hind Siliguri',sans-serif;cursor:pointer;transition:background .15s;}
+.pf-btn.prev{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);}
+.pf-btn.next{background:var(--red);color:white;}
+.pf-btn:hover{opacity:.85;}
+.player-progress{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.4);}
+
+/* ── UPGRADE WALL ── */
+.upgrade-wall{background:var(--dark);border-radius:16px;padding:32px 24px;text-align:center;position:relative;overflow:hidden;margin-bottom:20px;}
+.uw-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(229,52,42,0.18),transparent 70%);pointer-events:none;}
+.uw-icon{font-size:40px;margin-bottom:14px;position:relative;z-index:2;}
+.uw-title{font-family:'Syne','Hind Siliguri',sans-serif;font-size:20px;font-weight:800;color:white;margin-bottom:8px;position:relative;z-index:2;}
+.uw-sub{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.65;max-width:400px;margin:0 auto 24px;position:relative;z-index:2;}
+.uw-features{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto;position:relative;z-index:2;}
+.uw-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.7);}
+.uw-feat::before{content:'✓';color:var(--green);font-weight:800;flex-shrink:0;}
+.uw-price-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;position:relative;z-index:2;}
+.uw-old{font-size:16px;color:rgba(255,255,255,0.25);text-decoration:line-through;}
+.uw-new{font-family:'Noto Serif',serif;font-size:36px;font-weight:600;color:var(--red);}
+.uw-save{font-size:11px;color:var(--green);font-weight:700;position:relative;z-index:2;margin-bottom:18px;}
+.uw-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:16px 32px;font-size:15px;font-weight:800;font-family:'Syne','Hind Siliguri',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(229,52,42,0.4);transition:all .2s;position:relative;z-index:2;}
+.uw-btn:hover{background:var(--red-d);transform:translateY(-2px);}
+.uw-guarantee{font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px;position:relative;z-index:2;}
+
+/* ── PROGRESS SECTION ── */
+.progress-section{background:white;border-radius:14px;border:1px solid var(--border);padding:20px;margin-bottom:16px;}
+.ps-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ps-title{font-size:14px;font-weight:700;}
+.ps-pct{font-family:'Noto Serif',serif;font-size:20px;font-weight:600;color:var(--green);}
+.ps-bar-bg{background:var(--gray-l);border-radius:99px;height:8px;margin-bottom:12px;}
+.ps-bar{height:8px;border-radius:99px;background:var(--green);transition:width .6s;}
+.ps-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.ps-stat{text-align:center;background:var(--bg);border-radius:10px;padding:12px 8px;}
+.ps-stat-val{font-family:'Noto Serif',serif;font-size:18px;font-weight:600;color:var(--dark);}
+.ps-stat-lbl{font-size:10px;color:var(--gray);margin-top:2px;}
+
+/* ── ENROLL NUDGE (inline) ── */
+.enroll-nudge{background:linear-gradient(135deg,#0d0d0d,#1a0505);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:16px;border:1px solid rgba(229,52,42,0.2);}
+.en-icon{font-size:28px;flex-shrink:0;}
+.en-text{flex:1;}
+.en-title{font-size:14px;font-weight:700;color:white;margin-bottom:3px;}
+.en-sub{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;}
+.en-btn{background:var(--red);color:white;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;font-family:'Hind Siliguri',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s;}
+.en-btn:hover{background:var(--red-d);}
+
+/* ── PAYMENT MODAL ── */
+.pay-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+.pay-overlay.open{display:flex;}
+.pay-modal{background:var(--dark);border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:440px;overflow:hidden;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.pay-header{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;}
+.pay-title{font-family:'Syne','Hind Siliguri',sans-serif;font-size:17px;font-weight:800;color:white;}
+.pay-close{background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;padding:0;line-height:1;}
+.pay-body{padding:24px;}
+.pay-summary{background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:20px;}
+.pay-sum-row{display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:8px;}
+.pay-sum-row:last-child{margin-bottom:0;border-top:1px solid rgba(255,255,255,0.07);padding-top:8px;color:white;font-weight:700;font-size:15px;}
+.pay-methods{margin-bottom:20px;}
+.pay-methods-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+.pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pay-method{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;}
+.pay-method:hover,.pay-method.selected{border-color:var(--red);background:rgba(229,52,42,0.08);}
+.pay-method-icon{font-size:22px;margin-bottom:4px;}
+.pay-method-name{font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);}
+.pay-method.selected .pay-method-name{color:white;}
+.pay-field{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:white;font-family:'Hind Siliguri',sans-serif;margin-bottom:10px;outline:none;transition:border-color .2s;}
+.pay-field::placeholder{color:rgba(255,255,255,0.25);}
+.pay-field:focus{border-color:rgba(229,52,42,0.5);}
+.pay-field-group{display:none;margin-bottom:10px;}
+.pay-field-group.show{display:block;}
+.pay-submit{width:100%;background:var(--red);color:white;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;font-family:'Syne','Hind Siliguri',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(229,52,42,0.3);transition:all .2s;}
+.pay-submit:hover{background:var(--red-d);}
+.pay-guarantee{text-align:center;font-size:11px;color:rgba(255,255,255,0.25);margin-top:10px;}
+
+/* ── SUCCESS SCREEN ── */
+.success-screen{display:none;position:fixed;inset:0;background:var(--dark);z-index:9999;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;}
+.success-screen.open{display:flex;}
+.ss-emoji{font-size:64px;margin-bottom:20px;animation:bounce .6s ease;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.ss-title{font-family:'Syne','Hind Siliguri',sans-serif;font-size:28px;font-weight:800;color:white;margin-bottom:10px;}
+.ss-sub{font-size:14px;color:rgba(255,255,255,0.5);max-width:380px;line-height:1.7;margin-bottom:28px;}
+.ss-btn{background:var(--red);color:white;border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:800;font-family:'Syne','Hind Siliguri',sans-serif;cursor:pointer;}
+
+/* ── MOBILE NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--dark2);border-top:1px solid rgba(255,255,255,0.07);padding:8px 0;z-index:700;}
+@media(max-width:768px){.mobile-nav{display:flex;justify-content:space-around;}}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 12px;transition:color .15s;}
+.mn-item.active{color:var(--red);}
+.mn-icon{font-size:20px;}
+@media(max-width:768px){.content{padding-bottom:80px;}}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:white;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:9990;white-space:nowrap;border:1px solid rgba(255,255,255,0.1);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── UTILS ── */
+.badge-free{background:rgba(16,185,129,0.12);color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+.badge-locked{background:rgba(0,0,0,0.06);color:#999;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;}
+.divider{height:1px;background:var(--border);margin:20px 0;}
+.sec-head{font-size:12px;font-weight:700;color:var(--gray);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<!-- ══ ACCESS GATE ══ -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <div class="gate-mark">RL</div>
+      <div class="gate-name">Red<span>Lab</span> Studio</div>
+    </div>
+    <h2>ফ্রি ক্লাসে প্রবেশ করুন</h2>
+    <p class="gate-sub">রেজিস্ট্রেশন করা থাকলে একই নাম ও ইমেইল দিন। নতুন হলে এখনই শুরু করুন।</p>
+    <input class="gate-field" type="text" id="g-name" placeholder="আপনার নাম *">
+    <input class="gate-field" type="email" id="g-email" placeholder="ইমেইল এড্রেস *">
+    <button class="gate-btn" onclick="enterDashboard()">ড্যাশবোর্ডে প্রবেশ করুন →</button>
+    <div class="gate-trust">🔒 কোনো পেমেন্ট লাগবে না। ৩টি ক্লাস সম্পূর্ণ ফ্রি।</div>
+  </div>
+</div>
+
+<!-- ══ PAYMENT MODAL ══ -->
+<div class="pay-overlay" id="payOverlay">
+  <div class="pay-modal">
+    <div class="pay-header">
+      <div class="pay-title">🎓 কোর্সে এনরোল করুন</div>
+      <button class="pay-close" onclick="closePay()">×</button>
+    </div>
+    <div class="pay-body">
+      <div class="pay-summary">
+        <div class="pay-sum-row"><span>Video Editing Mastery Course</span><span>৳১২,০০০</span></div>
+        <div class="pay-sum-row"><span>আর্লি বার্ড ছাড়</span><span style="color:var(--green)">−৳৪,৫০০</span></div>
+        <div class="pay-sum-row"><span>বোনাস প্যাকেজ</span><span style="color:var(--green)">ফ্রি</span></div>
+        <div class="pay-sum-row"><span>মোট পরিশোধযোগ্য</span><span style="color:var(--red);font-family:'Noto Serif',serif">৳৭,৫০০</span></div>
+      </div>
+      <div class="pay-methods">
+        <div class="pay-methods-label">পেমেন্ট পদ্ধতি বেছে নিন</div>
+        <div class="pay-method-grid">
+          <div class="pay-method selected" onclick="selectMethod(this,'bkash')">
+            <div class="pay-method-icon">💗</div>
+            <div class="pay-method-name">bKash</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod(this,'nagad')">
+            <div class="pay-method-icon">🧡</div>
+            <div class="pay-method-name">Nagad</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod(this,'card')">
+            <div class="pay-method-icon">💳</div>
+            <div class="pay-method-name">Card</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod(this,'bank')">
+            <div class="pay-method-icon">🏦</div>
+            <div class="pay-method-name">Bank Transfer</div>
+          </div>
+        </div>
+      </div>
+      <div class="pay-field-group show" id="fg-bkash">
+        <input class="pay-field" type="tel" placeholder="bKash নম্বর (01XXXXXXXXX)">
+        <input class="pay-field" type="text" placeholder="Transaction ID">
+      </div>
+      <div class="pay-field-group" id="fg-nagad">
+        <input class="pay-field" type="tel" placeholder="Nagad নম্বর (01XXXXXXXXX)">
+        <input class="pay-field" type="text" placeholder="Transaction ID">
+      </div>
+      <div class="pay-field-group" id="fg-card">
+        <input class="pay-field" type="text" placeholder="Card Number">
+        <input class="pay-field" type="text" placeholder="MM/YY  |  CVV">
+      </div>
+      <div class="pay-field-group" id="fg-bank">
+        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.7;margin-bottom:10px">
+          <strong style="color:white">Bank: Dutch-Bangla Bank</strong><br>
+          Account: 1234567890<br>
+          Routing: 090261234<br>
+          Reference: <span style="color:var(--red)">REDLAB-COURSE</span>
+        </div>
+        <input class="pay-field" type="text" placeholder="Transaction / Reference Number">
+      </div>
+      <button class="pay-submit" onclick="submitPayment()">পেমেন্ট কনফার্ম করুন →</button>
+      <div class="pay-guarantee">🛡️ ৭ দিনের মানি-ব্যাক গ্যারান্টি</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS SCREEN ══ -->
+<div class="success-screen" id="successScreen">
+  <div class="ss-emoji">🎉</div>
+  <div class="ss-title">এনরোলমেন্ট সফল!</div>
+  <div class="ss-sub">অভিনন্দন! আপনি সফলভাবে Video Editing Mastery Course-এ এনরোল হয়েছেন। সব ক্লাস এখন আনলক হয়ে গেছে। ইমেইলে বিস্তারিত পাঠানো হয়েছে।</div>
+  <button class="ss-btn" onclick="afterSuccess()">সব ক্লাস দেখুন →</button>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<!-- ══ TOP BAR ══ -->
+<div class="topbar" id="topbar" style="display:none">
+  <div class="tb-left">
+    <div class="tb-mark">RL</div>
+    <div class="tb-name">Red<span>Lab</span> Studio</div>
+    <div class="tb-badge">FREE ACCESS</div>
+  </div>
+  <div class="tb-user">
+    <div class="tb-avatar" id="tb-avatar">?</div>
+    <div class="tb-username" id="tb-username"></div>
+  </div>
+</div>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout" id="mainLayout" style="display:none">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section" style="margin-bottom:16px">
+      <div class="sb-progress">
+        <div class="sb-prog-label"><span>আপনার অগ্রগতি</span><span id="sb-pct">0%</span></div>
+        <div class="sb-prog-bar"><div class="sb-prog-fill" id="sb-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">ফ্রি ক্লাস</div>
+      <div class="sb-item active" onclick="showTab('classes',this)" id="sb-classes">
+        <span class="sb-icon">📚</span><span>ক্লাস তালিকা</span>
+      </div>
+      <div class="sb-item" onclick="showTab('progress',this)" id="sb-progress">
+        <span class="sb-icon">📊</span><span>আমার অগ্রগতি</span>
+      </div>
+    </div>
+    <div class="sb-section" style="margin-top:16px">
+      <div class="sb-label">পুরো কোর্স</div>
+      <div class="sb-item" onclick="openPay()">
+        <span class="sb-icon">🔒</span><span>Module 02 — Storytelling</span><span class="sb-lock">🔒</span>
+      </div>
+      <div class="sb-item" onclick="openPay()">
+        <span class="sb-icon">🔒</span><span>Module 03 — After Effects</span><span class="sb-lock">🔒</span>
+      </div>
+      <div class="sb-item" onclick="openPay()">
+        <span class="sb-icon">🔒</span><span>Module 04 — Map Animation</span><span class="sb-lock">🔒</span>
+      </div>
+      <div class="sb-item" onclick="openPay()">
+        <span class="sb-icon">🔒</span><span>Module 05 — 3D & AI</span><span class="sb-lock">🔒</span>
+      </div>
+      <div class="sb-item" onclick="openPay()">
+        <span class="sb-icon">🔒</span><span>Module 06 — YouTube Growth</span><span class="sb-lock">🔒</span>
+      </div>
+    </div>
+    <button class="sb-enroll-cta" onclick="openPay()" style="margin-top:auto">
+      🎓 সম্পূর্ণ কোর্সে এনরোল করুন
+    </button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- WELCOME BANNER -->
+    <div class="welcome">
+      <div class="welcome-inner">
+        <div class="welcome-tag">Voice of Dhaka × RedLab Studio</div>
+        <div class="welcome-h">স্বাগতম, <span id="w-name" style="color:var(--red)">শিক্ষার্থী</span>! 👋</div>
+        <div class="welcome-sub">আপনার ৩টি ফ্রি ক্লাস শুরু হচ্ছে। প্রতিটি ক্লাস শেষ করুন এবং পুরো কোর্সে এনরোল করুন।</div>
+        <div class="welcome-tabs">
+          <div class="wtab active" onclick="showTab('classes',null,this)">📚 ক্লাস</div>
+          <div class="wtab" onclick="showTab('progress',null,this)">📊 অগ্রগতি</div>
+          <div class="wtab" onclick="showTab('enroll',null,this)">🎓 এনরোল</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ── CLASSES PANEL ── -->
+      <div class="panel active" id="panel-classes">
+
+        <!-- Enroll nudge -->
+        <div class="enroll-nudge" id="nudge">
+          <div class="en-icon">⚡</div>
+          <div class="en-text">
+            <div class="en-title">আর্লি বার্ড অফার চলছে — মাত্র ৳৭,৫০০</div>
+            <div class="en-sub">এখনই এনরোল করুন, ২৩টি বাকি ক্লাস + ৳১১,৫০০ বোনাস আনলক করুন</div>
+          </div>
+          <button class="en-btn" onclick="openPay()">এনরোল করুন →</button>
+        </div>
+
+        <!-- Current playing -->
+        <div class="sec-head">এখন দেখছেন</div>
+        <div class="player-wrap" id="playerWrap">
+          <div class="player-header">
+            <div class="player-title" id="playerTitle">Class 1 — Voice of Dhaka Editing Workflow Intro</div>
+            <div class="player-badge" id="playerBadge">FREE</div>
+          </div>
+          <div class="player-video" id="playerVideo">
+            <div class="player-thumb" id="playerThumb" onclick="startVideo(0)">
+              <div class="player-play">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <div class="player-sub-label">▶ ক্লিক করে ভিডিও শুরু করুন</div>
+            </div>
+          </div>
+          <div class="player-footer">
+            <div class="player-progress" id="playerProgress">
+              <span>ক্লাস ১ / ৩ (ফ্রি)</span>
+            </div>
+            <div class="player-nav">
+              <button class="pf-btn prev" onclick="changeClass(-1)">← আগের ক্লাস</button>
+              <button class="pf-btn next" onclick="changeClass(1)">পরের ক্লাস →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Class list -->
+        <div class="sec-head" style="margin-top:20px">Module 01 — Premiere Pro Foundations <span class="badge-free">FREE</span></div>
+        <div class="class-grid">
+          <div class="class-card" id="cc-0">
+            <div class="cc-num free"><div class="cc-num-txt">১</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">Voice of Dhaka Editing Workflow Intro</div>
+                <div class="cc-desc">Premiere Pro setup, Voice of Dhaka-র editing philosophy ও workflow overview</div>
+                <div class="cc-meta">
+                  <span class="cc-tag free">ফ্রি</span>
+                  <span class="cc-duration">⏱ ৪৫ মিনিট</span>
+                </div>
+              </div>
+              <div class="cc-action">
+                <button class="cc-btn play" onclick="selectClass(0)">▶ দেখুন</button>
+              </div>
+            </div>
+          </div>
+          <div class="class-card" id="cc-1">
+            <div class="cc-num free"><div class="cc-num-txt">২</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">Timeline Mastery & Advanced Cuts</div>
+                <div class="cc-desc">Professional editing technique — J-cut, L-cut, multi-cam, rhythm cutting</div>
+                <div class="cc-meta">
+                  <span class="cc-tag free">ফ্রি</span>
+                  <span class="cc-duration">⏱ ৫০ মিনিট</span>
+                </div>
+              </div>
+              <div class="cc-action">
+                <button class="cc-btn play" onclick="selectClass(1)">▶ দেখুন</button>
+              </div>
+            </div>
+          </div>
+          <div class="class-card" id="cc-2">
+            <div class="cc-num free"><div class="cc-num-txt">৩</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">Color Grading & Audio Basics</div>
+                <div class="cc-desc">Cinematic color grading, Lumetri Color, audio mixing ও background music</div>
+                <div class="cc-meta">
+                  <span class="cc-tag free">ফ্রি</span>
+                  <span class="cc-duration">⏱ ৫৫ মিনিট</span>
+                </div>
+              </div>
+              <div class="cc-action">
+                <button class="cc-btn play" onclick="selectClass(2)">▶ দেখুন</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Locked modules -->
+        <div class="divider"></div>
+        <div class="sec-head">বাকি ২৩টি ক্লাস — এনরোল করলে আনলক হবে 🔒</div>
+
+        <!-- Upgrade wall -->
+        <div class="upgrade-wall">
+          <div class="uw-glow"></div>
+          <div class="uw-icon">🔒</div>
+          <div class="uw-title">Class 4–26 আনলক করুন</div>
+          <div class="uw-sub">After Effects, Map Animation, 3D System, AI Workflow, YouTube Growth — সব শিখুন Voice of Dhaka-র ইন্সট্রাক্টরের কাছ থেকে।</div>
+          <div class="uw-features">
+            <div class="uw-feat">After Effects থেকে 3D ক্যামেরা সিস্টেম</div>
+            <div class="uw-feat">Vox-স্টাইল মোশন গ্রাফিক্স ও ম্যাপ অ্যানিমেশন</div>
+            <div class="uw-feat">AI Video Workflow — Runway, Midjourney</div>
+            <div class="uw-feat">YouTube SEO + থাম্বনেইল ডিজাইন</div>
+            <div class="uw-feat">১০টি portfolio project</div>
+            <div class="uw-feat">Lifetime recording access</div>
+          </div>
+          <div class="uw-price-row">
+            <div class="uw-old">৳১২,০০০</div>
+            <div class="uw-new">৳৭,৫০০</div>
+          </div>
+          <div class="uw-save">✅ আর্লি বার্ডে ৩৭.৫% ছাড় — ৳৪,৫০০ সাশ্রয়</div>
+          <button class="uw-btn" onclick="openPay()">এখনই এনরোল করুন →</button>
+          <div class="uw-guarantee">🛡️ ৭ দিনের মানি-ব্যাক গ্যারান্টি</div>
+        </div>
+
+        <!-- Locked class previews -->
+        <div class="class-grid" style="margin-top:12px;opacity:.5;pointer-events:none">
+          <div class="class-card locked">
+            <div class="cc-num"><div class="cc-num-txt">৪</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">After Effects Interface & Animation Basics</div>
+                <div class="cc-desc">Composition, keyframe, motion path, easing</div>
+                <div class="cc-meta"><span class="cc-tag locked">🔒 লকড</span><span class="cc-duration">⏱ ৬০ মিনিট</span></div>
+              </div>
+              <div class="cc-action"><button class="cc-btn unlock" onclick="openPay()">আনলক করুন</button></div>
+            </div>
+          </div>
+          <div class="class-card locked">
+            <div class="cc-num"><div class="cc-num-txt">৫</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">Text Animation & Motion Graphics</div>
+                <div class="cc-desc">Kinetic typography, animated title cards, lower thirds</div>
+                <div class="cc-meta"><span class="cc-tag locked">🔒 লকড</span><span class="cc-duration">⏱ ৫৫ মিনিট</span></div>
+              </div>
+              <div class="cc-action"><button class="cc-btn unlock" onclick="openPay()">আনলক করুন</button></div>
+            </div>
+          </div>
+          <div class="class-card locked">
+            <div class="cc-num"><div class="cc-num-txt">৬+</div><div class="cc-num-lbl">CLASS</div></div>
+            <div class="cc-body">
+              <div class="cc-info">
+                <div class="cc-title">আরও ২১টি ক্লাস...</div>
+                <div class="cc-desc">Map Animation, 3D, Magic Realism, AI Workflow, YouTube Growth ও আরও অনেক কিছু</div>
+                <div class="cc-meta"><span class="cc-tag locked">🔒 লকড</span></div>
+              </div>
+              <div class="cc-action"><button class="cc-btn unlock" onclick="openPay()">সব আনলক করুন</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROGRESS PANEL ── -->
+      <div class="panel" id="panel-progress">
+        <div class="progress-section">
+          <div class="ps-head">
+            <div class="ps-title">আপনার ফ্রি ক্লাস অগ্রগতি</div>
+            <div class="ps-pct" id="pp-pct">০%</div>
+          </div>
+          <div class="ps-bar-bg"><div class="ps-bar" id="pp-bar" style="width:0%"></div></div>
+          <div class="ps-stats">
+            <div class="ps-stat">
+              <div class="ps-stat-val" id="pp-watched">০</div>
+              <div class="ps-stat-lbl">ক্লাস দেখেছেন</div>
+            </div>
+            <div class="ps-stat">
+              <div class="ps-stat-val">৩</div>
+              <div class="ps-stat-lbl">ফ্রি ক্লাস মোট</div>
+            </div>
+            <div class="ps-stat">
+              <div class="ps-stat-val" id="pp-remaining">৩</div>
+              <div class="ps-stat-lbl">বাকি আছে</div>
+            </div>
+          </div>
+        </div>
+        <div class="enroll-nudge">
+          <div class="en-icon">🚀</div>
+          <div class="en-text">
+            <div class="en-title">ফ্রি ক্লাস ভালো লাগছে?</div>
+            <div class="en-sub">বাকি ২৩টি ক্লাস + ৩টি বোনাস + VIP Community — আর্লি বার্ডে ৳৭,৫০০</div>
+          </div>
+          <button class="en-btn" onclick="openPay()">এনরোল করুন</button>
+        </div>
+        <div class="upgrade-wall">
+          <div class="uw-glow"></div>
+          <div class="uw-icon">📈</div>
+          <div class="uw-title">পুরো ক্যারিয়ার জার্নি শুরু করুন</div>
+          <div class="uw-sub">৩টি ফ্রি ক্লাস দিয়ে আপনি ইতোমধ্যে Premiere Pro-র foundation পেয়েছেন। এবার After Effects, AI Workflow ও Freelancing শিখে সত্যিকারের career শুরু করুন।</div>
+          <div class="uw-price-row">
+            <div class="uw-old">৳১২,০০০</div>
+            <div class="uw-new">৳৭,৫০০</div>
+          </div>
+          <div class="uw-save">✅ সীমিত সময়ের আর্লি বার্ড অফার</div>
+          <button class="uw-btn" onclick="openPay()">এখনই এনরোল করুন →</button>
+          <div class="uw-guarantee">🛡️ ৭ দিনের মানি-ব্যাক গ্যারান্টি</div>
+        </div>
+      </div>
+
+      <!-- ── ENROLL PANEL ── -->
+      <div class="panel" id="panel-enroll">
+        <div class="upgrade-wall">
+          <div class="uw-glow"></div>
+          <div class="uw-icon">🎓</div>
+          <div class="uw-title">Video Editing Mastery — সম্পূর্ণ কোর্স</div>
+          <div class="uw-sub">২৬টি লাইভ ক্লাসে Premiere Pro + After Effects + AI Workflow + YouTube Growth। Voice of Dhaka-র ইন্সট্রাক্টরের কাছ থেকে সরাসরি শিখুন।</div>
+          <div class="uw-features">
+            <div class="uw-feat">২৬টি লাইভ ক্লাস — ৬টি মডিউল</div>
+            <div class="uw-feat">১০টি রিয়েল portfolio project</div>
+            <div class="uw-feat">Voice of Dhaka-স্টাইল Effect Pack (৳২,০০০)</div>
+            <div class="uw-feat">Career Roadmap PDF (৳১,৫০০)</div>
+            <div class="uw-feat">Weekly Mentor Session (৳৩,০০০)</div>
+            <div class="uw-feat">Private VIP Community (৳২,০০০)</div>
+            <div class="uw-feat">Premium Resource Pack (৳৩,০০০)</div>
+            <div class="uw-feat">Lifetime recording access</div>
+          </div>
+          <div style="text-align:center;margin-bottom:8px;font-size:12px;color:rgba(255,255,255,0.4);position:relative;z-index:2">কোর্স ৳১২,০০০ + বোনাস ৳১১,৫০০ = মোট ভ্যালু</div>
+          <div style="font-family:'Noto Serif',serif;font-size:22px;font-weight:600;color:white;margin-bottom:16px;position:relative;z-index:2">৳২৩,৫০০</div>
+          <div class="uw-price-row">
+            <div class="uw-old">৳১২,০০০</div>
+            <div class="uw-new">৳৭,৫০০</div>
+          </div>
+          <div class="uw-save">✅ আর্লি বার্ডে ৳৪,৫০০ সাশ্রয় — ৩৭.৫% ছাড়</div>
+          <button class="uw-btn" onclick="openPay()">এখনই পেমেন্ট করুন →</button>
+          <div class="uw-guarantee">🛡️ ৭ দিনের মানি-ব্যাক গ্যারান্টি — সন্তুষ্ট না হলে সম্পূর্ণ টাকা ফেরত</div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav" style="display:none">
+  <div class="mn-item active" onclick="showTab('classes',null,null,'mn-0')" id="mn-0">
+    <div class="mn-icon">📚</div><div>ক্লাস</div>
+  </div>
+  <div class="mn-item" onclick="showTab('progress',null,null,'mn-1')" id="mn-1">
+    <div class="mn-icon">📊</div><div>অগ্রগতি</div>
+  </div>
+  <div class="mn-item" onclick="showTab('enroll',null,null,'mn-2')" id="mn-2">
+    <div class="mn-icon">🎓</div><div>এনরোল</div>
+  </div>
+</div>
+
+<script>
+const VIDEO_ID = 'WBd4yC7tP_4';
+const VIDEO_SI = 'HvMj-K7Jc1SxKiAF';
+
+// State
+let userName = '';
+let watched = JSON.parse(localStorage.getItem('rl_watched')||'[]');
+let currentClass = 0;
+let enrolled = localStorage.getItem('rl_enrolled') === '1';
+let payMethod = 'bkash';
+
+const classes = [
+  {title:'Class 1 — Voice of Dhaka Editing Workflow Intro', badge:'FREE'},
+  {title:'Class 2 — Timeline Mastery & Advanced Cuts', badge:'FREE'},
+  {title:'Class 3 — Color Grading & Audio Basics', badge:'FREE'},
+];
+
+// ── GATE ──
+function enterDashboard(){
+  const name = document.getElementById('g-name').value.trim();
+  const email = document.getElementById('g-email').value.trim();
+  if(!name){showToast('নাম দিন');return;}
+  if(!email||!email.includes('@')){showToast('সঠিক ইমেইল দিন');return;}
+  userName = name;
+  localStorage.setItem('rl_user', JSON.stringify({name,email}));
+  document.getElementById('gate').style.display='none';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('mainLayout').style.display='grid';
+  document.getElementById('mobileNav').style.display='flex';
+  document.getElementById('w-name').textContent = name;
+  document.getElementById('tb-avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('tb-username').textContent = name;
+  updateProgress();
+  if(enrolled) handleEnrolled();
+}
+
+// Auto-login if saved
+(function(){
+  const saved = JSON.parse(localStorage.getItem('rl_user')||'null');
+  if(saved){
+    document.getElementById('g-name').value = saved.name;
+    document.getElementById('g-email').value = saved.email;
+  }
+})();
+
+// ── VIDEO ──
+function startVideo(idx){
+  const thumb = document.getElementById('playerThumb');
+  thumb.style.display = 'none';
+  const video = document.getElementById('playerVideo');
+  // Remove existing iframe
+  const old = video.querySelector('iframe');
+  if(old) old.remove();
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.youtube-nocookie.com/embed/${VIDEO_ID}?si=${VIDEO_SI}&autoplay=1&rel=0`;
+  iframe.title = 'Voice of Dhaka Video Editing Course';
+  iframe.frameBorder = '0';
+  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+  iframe.allowFullscreen = true;
+  iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
+  video.appendChild(iframe);
+  // Mark watched
+  if(!watched.includes(idx)){
+    watched.push(idx);
+    localStorage.setItem('rl_watched', JSON.stringify(watched));
+    updateProgress();
+    // change button to done
+    const btn = document.querySelector(`#cc-${idx} .cc-btn`);
+    if(btn){btn.textContent='✓ দেখা হয়েছে';btn.className='cc-btn done';}
+    if(idx===2) setTimeout(()=>showToast('🎉 সব ফ্রি ক্লাস দেখা হয়েছে! এনরোল করুন।'),2000);
+  }
+}
+
+function selectClass(idx){
+  if(idx >= 3 && !enrolled){openPay();return;}
+  currentClass = idx;
+  const cl = classes[idx] || classes[0];
+  document.getElementById('playerTitle').textContent = cl.title;
+  document.getElementById('playerBadge').textContent = cl.badge;
+  document.getElementById('playerProgress').innerHTML = `<span>ক্লাস ${idx+1} / ৩ (ফ্রি)</span>`;
+  // Reset player
+  const thumb = document.getElementById('playerThumb');
+  thumb.style.display = 'flex';
+  thumb.onclick = ()=>startVideo(idx);
+  const old = document.getElementById('playerVideo').querySelector('iframe');
+  if(old) old.remove();
+  // Scroll to player
+  document.getElementById('playerWrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function changeClass(dir){
+  const next = currentClass + dir;
+  if(next < 0) return;
+  if(next >= 3 && !enrolled){openPay();return;}
+  selectClass(Math.min(next, classes.length-1));
+}
+
+// ── PROGRESS ──
+function updateProgress(){
+  const pct = Math.round(watched.length/3*100);
+  document.getElementById('sb-pct').textContent = pct+'%';
+  document.getElementById('sb-fill').style.width = pct+'%';
+  document.getElementById('pp-pct').textContent = pct+'%';
+  document.getElementById('pp-bar').style.width = pct+'%';
+  document.getElementById('pp-watched').textContent = watched.length;
+  document.getElementById('pp-remaining').textContent = Math.max(0, 3-watched.length);
+  // update class buttons
+  watched.forEach(idx=>{
+    const btn = document.querySelector(`#cc-${idx} .cc-btn`);
+    if(btn&&btn.className.includes('play')){btn.textContent='✓ দেখা হয়েছে';btn.className='cc-btn done';}
+  });
+}
+
+// ── TABS ──
+function showTab(id, sbEl, wtabEl, mnId){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.wtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.mn-item').forEach(m=>m.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(sbEl) sbEl.classList.add('active');
+  if(wtabEl) wtabEl.classList.add('active');
+  if(mnId) document.getElementById(mnId).classList.add('active');
+  // Sync sidebar
+  const sbMap = {classes:'sb-classes',progress:'sb-progress'};
+  if(sbMap[id]) document.getElementById(sbMap[id])?.classList.add('active');
+}
+
+// ── PAYMENT ──
+function openPay(){
+  document.getElementById('payOverlay').classList.add('open');
+}
+function closePay(){
+  document.getElementById('payOverlay').classList.remove('open');
+}
+function selectMethod(el, method){
+  payMethod = method;
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+  ['bkash','nagad','card','bank'].forEach(m=>{
+    document.getElementById('fg-'+m).classList.toggle('show', m===method);
+  });
+}
+function submitPayment(){
+  // Simulate payment success
+  closePay();
+  document.getElementById('successScreen').classList.add('open');
+  localStorage.setItem('rl_enrolled','1');
+  enrolled = true;
+}
+function afterSuccess(){
+  document.getElementById('successScreen').classList.remove('open');
+  handleEnrolled();
+}
+function handleEnrolled(){
+  // Update UI for enrolled user
+  document.getElementById('tb-badge').textContent='ENROLLED';
+  document.getElementById('tb-badge').style.background='rgba(16,185,129,0.2)';
+  document.getElementById('tb-badge').style.color='var(--green)';
+  document.getElementById('tb-badge').style.borderColor='rgba(16,185,129,0.3)';
+  document.getElementById('nudge').style.display='none';
+  showToast('🎉 সব ক্লাস আনলক হয়েছে!');
+}
+
+// ── OVERLAY CLICK ──
+document.getElementById('payOverlay').addEventListener('click',function(e){
+  if(e.target===this) closePay();
+});
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Init
+updateProgress();
+</script>
+</body>
+</html>

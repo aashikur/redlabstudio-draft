@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedLab Studios — Financial Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+:root{
+  --red:#E5342A;--red-d:#B5241B;--red-l:#FF5A50;--red-bg:#FFF1F0;
+  --dark:#0F0F0F;--dark2:#1A1A1A;--dark3:#252525;
+  --gray:#6B6B6B;--gray-l:#E8E8E8;--gray-bg:#F5F5F5;
+  --white:#FFFFFF;--green:#10B981;--amber:#F59E0B;--blue:#3B82F6;--purple:#8B5CF6;
+  --border:rgba(0,0,0,0.08);--sh:0 2px 12px rgba(0,0,0,0.06);--sh-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#EFEFEF;color:var(--dark);min-height:100vh;}
+/* CANVAS */
+#draw-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9000;}
+#draw-canvas.active{pointer-events:all;cursor:crosshair;}
+#draw-canvas.eraser-mode{cursor:cell;}
+/* SIDEBAR NAV */
+.sidebar{position:fixed;left:0;top:0;height:100vh;width:220px;background:var(--dark);z-index:800;display:flex;flex-direction:column;overflow:hidden;}
+.sb-brand{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.sb-logo{display:flex;align-items:center;gap:10px;}
+.sb-logo-mark{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:white;}
+.sb-brand-name{font-size:13px;font-weight:700;color:white;}
+.sb-brand-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 0;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+.nav-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:0.1em;text-transform:uppercase;padding:12px 18px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;transition:background 0.15s;font-size:12px;color:rgba(255,255,255,0.55);border-left:2px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:rgba(229,52,42,0.15);color:white;border-left-color:var(--red);}
+.nav-item .nav-icon{font-size:14px;width:18px;text-align:center;}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.06);font-size:10px;color:rgba(255,255,255,0.25);}
+/* MAIN */
+.main{margin-left:220px;min-height:100vh;}
+.top-bar{background:white;border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:700;}
+.top-bar-left{display:flex;align-items:center;gap:16px;}
+.page-title{font-size:15px;font-weight:700;}
+.page-sub{font-size:11px;color:var(--gray);}
+.top-bar-right{display:flex;align-items:center;gap:10px;}
+.month-selector{padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;outline:none;cursor:pointer;}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;}
+.badge-red{background:var(--red-bg);color:var(--red);}
+.badge-green{background:#ECFDF5;color:#059669;}
+.badge-amber{background:#FFFBEB;color:#B45309;}
+.badge-blue{background:#EFF6FF;color:#1D4ED8;}
+.badge-dark{background:var(--dark);color:white;}
+/* PAGE PANELS */
+.panel{display:none;padding:28px 32px;}
+.panel.active{display:block;}
+/* SECTION */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;margin-top:32px;}
+.sec-head:first-child{margin-top:0;}
+.sec-title{font-size:15px;font-weight:700;}
+.sec-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+/* CARD */
+.card{background:white;border-radius:14px;border:1px solid var(--border);box-shadow:var(--sh);padding:22px;transition:box-shadow 0.2s;}
+.card:hover{box-shadow:var(--sh-lg);}
+.card-title{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+/* METRIC CARDS */
+.metric{background:white;border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;}
+.metric::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.metric.red::after{background:var(--red);}
+.metric.green::after{background:var(--green);}
+.metric.amber::after{background:var(--amber);}
+.metric.blue::after{background:var(--blue);}
+.metric.purple::after{background:var(--purple);}
+.metric-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;}
+.metric-label{font-size:11px;color:var(--gray);margin-top:5px;}
+.metric-delta{font-size:11px;margin-top:4px;font-weight:500;}
+.metric-delta.pos{color:var(--green);}
+.metric-delta.neg{color:var(--red);}
+/* EDITABLE */
+.editable{position:relative;display:inline;cursor:default;border-radius:3px;transition:background 0.15s;}
+.editable:hover{background:rgba(229,52,42,0.07);}
+.editable:hover .ep{opacity:1;pointer-events:all;}
+.ep{position:absolute;top:50%;right:-24px;transform:translateY(-50%);width:18px;height:18px;background:var(--red);border:none;border-radius:4px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center;z-index:50;}
+.ep svg{width:9px;height:9px;fill:white;}
+/* EDIT MODAL */
+.edit-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99998;}
+.edit-overlay.open{display:block;}
+.edit-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:16px;padding:24px;width:440px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);z-index:99999;}
+.edit-modal.open{display:block;}
+.edit-modal h3{font-size:14px;font-weight:700;margin-bottom:10px;}
+.edit-modal textarea{width:100%;border:1px solid var(--gray-l);border-radius:8px;padding:10px 12px;font-family:'Inter',sans-serif;font-size:13px;resize:vertical;min-height:70px;outline:none;}
+.edit-modal textarea:focus{border-color:var(--red);}
+.edit-modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.btn-red{background:var(--red);color:white;}
+.btn-red:hover{background:var(--red-d);}
+.btn-ghost{background:var(--gray-bg);color:var(--dark);}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.btn-print{background:var(--dark);color:white;}
+.btn-print:hover{background:#333;}
+/* TABLES */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+table th{background:var(--gray-bg);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;color:var(--gray);white-space:nowrap;}
+table td{padding:9px 12px;border-top:1px solid var(--border);vertical-align:middle;}
+table tr:hover td{background:#FAFAFA;}
+table td input{border:none;background:transparent;font-size:12px;font-family:'Inter',sans-serif;width:100%;outline:none;text-align:right;}
+table td input:focus{background:rgba(229,52,42,0.05);border-radius:4px;}
+.tbl-total td{background:var(--dark);color:white;font-weight:700;}
+.tbl-total td input{color:white;}
+/* FIXED COST */
+.fc-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.fc-row:last-child{border-bottom:none;}
+.fc-cat{font-size:11px;color:var(--gray);min-width:160px;}
+.fc-bar-bg{flex:1;height:5px;background:var(--gray-bg);border-radius:99px;}
+.fc-bar{height:5px;border-radius:99px;transition:width 0.4s;}
+.fc-amt{font-size:12px;font-weight:600;min-width:90px;text-align:right;}
+.fc-amt input{border:none;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;width:80px;text-align:right;outline:none;background:transparent;}
+/* PROGRESS */
+.prog-wrap{background:var(--gray-bg);border-radius:99px;height:10px;overflow:hidden;}
+.prog-bar{height:10px;border-radius:99px;transition:width 0.6s;}
+/* ALERT BANNER */
+.alert{padding:12px 16px;border-radius:10px;font-size:12px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.alert-green{background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;}
+.alert-amber{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;}
+.alert-red{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+.alert-blue{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+/* SAVE BAR */
+.save-bar{position:fixed;bottom:24px;right:24px;background:var(--dark);color:white;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 8px 30px rgba(0,0,0,0.3);z-index:9990;opacity:0;transform:translateY(20px);transition:all 0.3s;}
+.save-bar.show{opacity:1;transform:translateY(0);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+.sdot.saving{background:var(--amber);animation:pulse 0.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* STYLUS */
+.stylus-panel{position:fixed;bottom:32px;left:16px;background:white;border:1px solid var(--border);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,0.15);z-index:9991;display:flex;flex-direction:column;align-items:center;width:52px;transition:width 0.3s,border-radius 0.3s;overflow:hidden;}
+.stylus-panel.exp{width:210px;border-radius:14px;}
+.sp-header{width:100%;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--dark);}
+.sp-title{font-size:11px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;}
+.sp-tog{width:18px;height:18px;background:rgba(255,255,255,0.1);border:none;border-radius:4px;cursor:pointer;color:white;font-size:10px;display:flex;align-items:center;justify-content:center;}
+.sp-body{display:none;width:100%;padding:6px;}
+.sp-row{display:flex;gap:4px;margin-bottom:4px;}
+.sp-btn{width:34px;height:34px;background:var(--gray-bg);border:1px solid var(--border);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;}
+.sp-btn:hover{background:var(--gray-l);}
+.sp-btn.on{background:var(--red);border-color:var(--red);}
+.sp-div{height:1px;background:var(--border);margin:4px 0;}
+.sp-colors{display:flex;gap:4px;flex-wrap:wrap;padding:2px 0;}
+.sp-col{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s;}
+.sp-col:hover{transform:scale(1.15);}
+.sp-col.sel{border-color:var(--dark);}
+.sp-lbl{font-size:9px;color:var(--gray);margin-bottom:3px;}
+.sp-range{width:100%;accent-color:var(--red);}
+.sp-clear{width:calc(100% - 4px);margin:2px;padding:6px;background:var(--dark);color:white;border:none;border-radius:7px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.sp-compact{width:34px;height:34px;background:var(--dark);border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;margin:8px auto;}
+/* CHART */
+.chart-box{position:relative;height:240px;}
+.chart-box-lg{position:relative;height:300px;}
+/* CONGRATS */
+.congrats{background:linear-gradient(135deg,#0F0F0F,#1A1A1A);border-radius:16px;padding:28px;text-align:center;color:white;display:none;}
+.congrats.show{display:block;}
+.congrats-emoji{font-size:48px;margin-bottom:12px;}
+.congrats-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.congrats-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;}
+/* TARGET */
+.target-input-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.target-input-row:last-child{border-bottom:none;}
+.target-label{font-size:12px;font-weight:500;min-width:180px;}
+.target-input{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;width:140px;outline:none;}
+.target-input:focus{border-color:var(--red);}
+.target-achieve{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;}
+/* PRINT AREA */
+.print-section{page-break-inside:avoid;}
+@media print{
+  .sidebar,.top-bar,.stylus-panel,.save-bar,.edit-overlay,.edit-modal,.no-print{display:none!important;}
+  .main{margin-left:0;}
+  .panel{display:block!important;padding:16px;}
+}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{width:60px;}
+  .sb-brand-name,.sb-brand-sub,.nav-item span,.nav-section-label{display:none;}
+  .main{margin-left:60px;}
+  .g4,.g5{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr;}
+  .panel{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- CANVAS -->
+<canvas id="draw-canvas"></canvas>
+
+<!-- EDIT MODAL -->
+<div class="edit-overlay" id="eov" onclick="closeEdit()"></div>
+<div class="edit-modal" id="emod">
+  <h3>✏️ টেক্সট এডিট</h3>
+  <textarea id="etxt" rows="3"></textarea>
+  <div class="edit-modal-btns">
+    <button class="btn btn-ghost" onclick="closeEdit()">বাতিল</button>
+    <button class="btn btn-red" onclick="saveEdit()">সেভ</button>
+  </div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar" id="saveBar"><div class="sdot" id="sdot"></div><span id="saveMsg">সেভ হয়েছে</span></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">RL</div>
+      <div>
+        <div class="sb-brand-name">RedLab Studios</div>
+        <div class="sb-brand-sub">Financial Dashboard</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="showPanel('glance',this)" data-panel="glance"><span class="nav-icon">⚡</span><span>At a Glance</span></div>
+    <div class="nav-section-label">Data Entry</div>
+    <div class="nav-item" onclick="showPanel('daily',this)" data-panel="daily"><span class="nav-icon">📅</span><span>Daily Entry</span></div>
+    <div class="nav-section-label">Reports</div>
+    <div class="nav-item" onclick="showPanel('daily_report',this)" data-panel="daily_report"><span class="nav-icon">📄</span><span>Daily Report</span></div>
+    <div class="nav-item" onclick="showPanel('weekly',this)" data-panel="weekly"><span class="nav-icon">📊</span><span>Weekly Report</span></div>
+    <div class="nav-item" onclick="showPanel('monthly',this)" data-panel="monthly"><span class="nav-icon">📈</span><span>Monthly Report</span></div>
+    <div class="nav-item" onclick="showPanel('quarterly',this)" data-panel="quarterly"><span class="nav-icon">🗓️</span><span>Quarterly Report</span></div>
+    <div class="nav-section-label">Settings</div>
+    <div class="nav-item" onclick="showPanel('fixed_cost',this)" data-panel="fixed_cost"><span class="nav-icon">🔧</span><span>Fixed Costs</span></div>
+    <div class="nav-item" onclick="showPanel('target',this)" data-panel="target"><span class="nav-icon">🎯</span><span>Target Setting</span></div>
+  </nav>
+  <div class="sb-footer">Strategist: Mahmud Hasan Asif</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div>
+        <div class="page-title" id="pageTitle">At a Glance</div>
+        <div class="page-sub" id="pageSub">সামগ্রিক পারফরম্যান্স ওভারভিউ</div>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <select class="month-selector" id="globalMonth" onchange="onMonthChange()"></select>
+      <span class="badge badge-red" id="todayBadge"></span>
+    </div>
+  </div>
+
+  <!-- ══ AT A GLANCE ══ -->
+  <div class="panel active" id="panel-glance">
+    <div id="glance-alerts"></div>
+    <div class="g5" style="margin-bottom:16px">
+      <div class="metric red"><div class="metric-val" id="gl-revenue">৳০</div><div class="metric-label">মাসিক রেভিনিউ</div><div class="metric-delta" id="gl-rev-delta">—</div></div>
+      <div class="metric green"><div class="metric-val" id="gl-gross">৳০</div><div class="metric-label">গ্রস প্রফিট</div><div class="metric-delta" id="gl-gross-delta">—</div></div>
+      <div class="metric amber"><div class="metric-val" id="gl-net">৳০</div><div class="metric-label">নীট প্রফিট</div><div class="metric-delta" id="gl-net-delta">—</div></div>
+      <div class="metric blue"><div class="metric-val" id="gl-units">০</div><div class="metric-label">কোর্স সেল</div><div class="metric-delta" id="gl-units-delta">—</div></div>
+      <div class="metric purple"><div class="metric-val" id="gl-roas">০×</div><div class="metric-label">ROAS</div><div class="metric-delta" id="gl-roas-delta">—</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title">মাসিক রেভিনিউ ট্রেন্ড</div>
+        <div class="chart-box"><canvas id="glRevChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">খরচ বনাম আয়</div>
+        <div class="chart-box"><canvas id="glCostChart"></canvas></div>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-title">টার্গেট অগ্রগতি</div>
+        <div id="glTargetProg"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ব্রেক-ইভেন স্ট্যাটাস</div>
+        <div id="glBreakeven"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">দৈনিক গড়</div>
+        <div id="glDailyAvg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DAILY ENTRY ══ -->
+  <div class="panel" id="panel-daily">
+    <div class="sec-head">
+      <div><div class="sec-title">Daily Sales & Ad Entry</div><div class="sec-sub">প্রতিদিনের ডেটা এন্ট্রি করুন — অটো ক্যালকুলেট হবে</div></div>
+      <div style="display:flex;gap:8px">
+        <select id="entryMonth" class="month-selector" onchange="renderDailyTable()"></select>
+        <button class="btn btn-red btn-sm" onclick="addNewDay()">+ নতুন দিন</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table id="dailyTable">
+          <thead>
+            <tr>
+              <th>তারিখ</th><th>কোর্স সেল (সংখ্যা)</th><th>কোর্স মূল্য (৳)</th>
+              <th>রেভিনিউ (৳)</th><th>অ্যাড খরচ (৳)</th>
+              <th>অন্যান্য খরচ (৳)</th><th>গ্রস প্রফিট (৳)</th>
+              <th>ROAS</th><th>নোট</th><th class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="dailyTbody"></tbody>
+          <tfoot>
+            <tr class="tbl-total">
+              <td>মোট</td><td id="tot-units">0</td><td>—</td>
+              <td id="tot-rev">৳0</td><td id="tot-ad">৳0</td>
+              <td id="tot-other">৳0</td><td id="tot-gross">৳0</td>
+              <td id="tot-roas">—</td><td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div style="margin-top:14px;padding:14px;background:var(--gray-bg);border-radius:10px;">
+        <div class="g4">
+          <div><div class="metric-label">গ্রস প্রফিট</div><div class="metric-val" id="sum-gross" style="font-size:18px">৳০</div></div>
+          <div><div class="metric-label">ফিক্সড কস্ট</div><div class="metric-val" id="sum-fixed" style="font-size:18px;color:var(--red)">৳০</div></div>
+          <div><div class="metric-label">নীট প্রফিট</div><div class="metric-val" id="sum-net" style="font-size:18px">৳০</div></div>
+          <div><div class="metric-label">ব্রেক-ইভেন</div><div class="metric-val" id="sum-be" style="font-size:18px">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DAILY REPORT ══ -->
+  <div class="panel" id="panel-daily_report">
+    <div class="sec-head no-print">
+      <div><div class="sec-title">Daily Report</div><div class="sec-sub">নির্দিষ্ট তারিখের রিপোর্ট</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="reportDate" class="month-selector" onchange="renderDailyReport()">
+        <button class="btn btn-print btn-sm" onclick="printSection('daily-report-body')">🖨️ Print/Export</button>
+      </div>
+    </div>
+    <div id="daily-report-body" class="print-section"></div>
+  </div>
+
+  <!-- ══ WEEKLY REPORT ══ -->
+  <div class="panel" id="panel-weekly">
+    <div class="sec-head no-print">
+      <div><div class="sec-title">Weekly Report</div><div class="sec-sub">সাপ্তাহিক পারফরম্যান্স সারসংক্ষেপ</div></div>
+      <div style="display:flex;gap:8px">
+        <select id="weekMonth" class="month-selector" onchange="renderWeekly()"></select>
+        <button class="btn btn-print btn-sm" onclick="printSection('weekly-body')">🖨️ Print/Export</button>
+      </div>
+    </div>
+    <div id="weekly-body" class="print-section"></div>
+  </div>
+
+  <!-- ══ MONTHLY REPORT ══ -->
+  <div class="panel" id="panel-monthly">
+    <div class="sec-head no-print">
+      <div><div class="sec-title">Monthly Report</div><div class="sec-sub">মাসিক পারফরম্যান্স রিপোর্ট</div></div>
+      <div style="display:flex;gap:8px">
+        <select id="monthReportMonth" class="month-selector" onchange="renderMonthlyReport()"></select>
+        <button class="btn btn-print btn-sm" onclick="printSection('monthly-body')">🖨️ Print/Export</button>
+      </div>
+    </div>
+    <div id="monthly-body" class="print-section"></div>
+  </div>
+
+  <!-- ══ QUARTERLY REPORT ══ -->
+  <div class="panel" id="panel-quarterly">
+    <div class="sec-head no-print">
+      <div><div class="sec-title">Quarterly Report</div><div class="sec-sub">ত্রৈমাসিক বিশ্লেষণ</div></div>
+      <div style="display:flex;gap:8px">
+        <select id="quarterSelect" class="month-selector" onchange="renderQuarterly()">
+          <option value="1">Q1 (Jan–Mar)</option><option value="2">Q2 (Apr–Jun)</option>
+          <option value="3">Q3 (Jul–Sep)</option><option value="4">Q4 (Oct–Dec)</option>
+        </select>
+        <select id="quarterYear" class="month-selector" onchange="renderQuarterly()"></select>
+        <button class="btn btn-print btn-sm" onclick="printSection('quarterly-body')">🖨️ Print/Export</button>
+      </div>
+    </div>
+    <div id="quarterly-body" class="print-section"></div>
+  </div>
+
+  <!-- ══ FIXED COSTS ══ -->
+  <div class="panel" id="panel-fixed_cost">
+    <div class="sec-head">
+      <div><div class="sec-title">Fixed Cost Management</div><div class="sec-sub">মাসিক ব্রেক-ইভেন পয়েন্ট — সব এডিট করা যাবে</div></div>
+      <button class="btn btn-red btn-sm" onclick="addFixedCost()">+ যোগ করুন</button>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">ফিক্সড কস্ট তালিকা <span class="badge badge-red" id="fc-total-badge">৳০</span></div>
+        <div id="fcList"></div>
+        <div style="padding-top:12px;margin-top:8px;border-top:2px solid var(--dark);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:700;">মোট মাসিক ব্রেক-ইভেন</span>
+          <span style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:var(--red);" id="fc-grand-total">৳০</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">খরচ বিতরণ</div>
+        <div class="chart-box-lg"><canvas id="fcChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">ব্রেক-ইভেন বিশ্লেষণ</div>
+      <div class="g4" id="be-analysis"></div>
+    </div>
+  </div>
+
+  <!-- ══ TARGET ══ -->
+  <div class="panel" id="panel-target">
+    <div class="sec-head">
+      <div><div class="sec-title">Monthly Target Setting</div><div class="sec-sub">টার্গেট সেট করুন — সব প্যানেলে সিংক হবে</div></div>
+      <select id="targetMonth" class="month-selector" onchange="renderTarget()"></select>
+    </div>
+    <div id="congrats-box" class="congrats">
+      <div class="congrats-emoji">🎉</div>
+      <div class="congrats-title">অভিনন্দন! টার্গেট অর্জিত হয়েছে!</div>
+      <div class="congrats-sub" id="congrats-sub">এই মাসে আপনি লক্ষ্যমাত্রা ছাড়িয়ে গেছেন। অসাধারণ পারফরম্যান্স!</div>
+    </div>
+    <div id="target-alerts" style="margin-bottom:12px"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">টার্গেট ইনপুট</div>
+        <div id="target-inputs"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">টার্গেট অর্জন ট্র্যাকিং</div>
+        <div id="target-tracking"></div>
+      </div>
+    </div>
+    <div class="g2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">টার্গেট বনাম অর্জন চার্ট</div>
+        <div class="chart-box"><canvas id="targetChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">দৈনিক রান রেট প্রজেকশন</div>
+        <div class="chart-box"><canvas id="runRateChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /main -->
+
+<!-- STYLUS -->
+<div class="stylus-panel" id="spanel">
+  <div class="sp-header">
+    <span class="sp-title" id="sptitle">✏️</span>
+    <button class="sp-tog" id="sptog" onclick="toggleSP()">⟩</button>
+  </div>
+  <div class="sp-body" id="sp-body">
+    <div class="sp-row">
+      <button class="sp-btn on" id="spen" title="পেন" onclick="sTool('pen')">✏️</button>
+      <button class="sp-btn" id="smarker" title="মার্কার" onclick="sTool('marker')">🖊️</button>
+      <button class="sp-btn" id="seraser" title="ইরেজার" onclick="sTool('eraser')">🧹</button>
+      <button class="sp-btn" id="sselect" title="অফ" onclick="sTool('select')">☝️</button>
+    </div>
+    <div class="sp-div"></div>
+    <div class="sp-lbl">সাইজ <span id="szv">3</span>px</div>
+    <input type="range" class="sp-range" id="szr" min="1" max="30" value="3" oninput="setBrushSz(this.value)">
+    <div class="sp-lbl" style="margin-top:6px">অপাসিটি <span id="opv">100</span>%</div>
+    <input type="range" class="sp-range" id="opr" min="10" max="100" value="100" oninput="setBrushOp(this.value)">
+    <div class="sp-div"></div>
+    <div class="sp-lbl">রং</div>
+    <div class="sp-colors">
+      <div class="sp-col sel" style="background:#E5342A" data-c="#E5342A" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#0F0F0F" data-c="#0F0F0F" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#3B82F6" data-c="#3B82F6" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#10B981" data-c="#10B981" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#F59E0B" data-c="#F59E0B" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#8B5CF6" data-c="#8B5CF6" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#EC4899" data-c="#EC4899" onclick="sCol(this)"></div>
+      <div class="sp-col" style="background:#fff;border:1px solid #ccc" data-c="#FFFFFF" onclick="sCol(this)"></div>
+    </div>
+    <div class="sp-div"></div>
+    <button class="sp-clear" onclick="clearDraw()">🗑️ সব মুছুন</button>
+  </div>
+  <button class="sp-compact" id="spcompact" onclick="toggleSP()">✏️</button>
+</div>
+
+<script>
+// ══════════════════════ STATE ══════════════════════
+const SK = 'rl_fin_v3';
+function ld() { try { return JSON.parse(localStorage.getItem(SK))||{}; } catch(e){return{};} }
+function sv(d) { localStorage.setItem(SK, JSON.stringify(d)); }
+let D = ld();
+
+// defaults
+if(!D.fixedCosts) D.fixedCosts = [
+  {name:'অফিস ভাড়া ও ইউটিলিটি', amt:45000, color:'#E5342A'},
+  {name:'টিম স্যালারি', amt:70000, color:'#3B82F6'},
+  {name:'Adobe / সফটওয়্যার সাবস্ক্রিপশন', amt:12000, color:'#8B5CF6'},
+  {name:'এজেন্সি বিল / ফ্রিল্যান্সার', amt:25000, color:'#F59E0B'},
+  {name:'টেকনোলজি (হোস্টিং, টুলস)', amt:18000, color:'#10B981'},
+  {name:'মিসেলেনিয়াস', amt:10000, color:'#6B6B6B'},
+];
+if(!D.salesData) D.salesData = {};
+if(!D.targets) D.targets = {};
+if(!D.texts) D.texts = {};
+
+const COURSE_PRICE_DEFAULT = 7500;
+const MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// build month options Apr 2026 → Apr 2027
+function buildMonthOptions(selId, selectedVal) {
+  const sel = document.getElementById(selId);
+  if(!sel) return;
+  sel.innerHTML = '';
+  for(let y=2026;y<=2040;y++){
+    const start = y===2026?3:0;
+    const end = 11;
+    for(let m=start;m<=end;m++){
+      const val = y+'-'+String(m+1).padStart(2,'0');
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = MONTHS_BN[m]+' '+y;
+      if(val === selectedVal) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+function getCurrentMonth() {
+  return D.currentMonth || '2026-04';
+}
+
+function initSelectors() {
+  const cm = getCurrentMonth();
+  ['globalMonth','entryMonth','weekMonth','monthReportMonth','targetMonth'].forEach(id => buildMonthOptions(id, cm));
+  // quarter year
+  const qy = document.getElementById('quarterYear');
+  if(qy){
+    let qyHtml='';
+    for(let y=2026;y<=2040;y++) qyHtml+=`<option value="${y}">${y}</option>`;
+    qy.innerHTML=qyHtml;
+  }
+  // today badge
+  document.getElementById('todayBadge').textContent = '২৬ এপ্রিল ২০২৬';
+  // report date default
+  const rd = document.getElementById('reportDate');
+  if(rd) rd.value = '2026-04-26';
+}
+
+function onMonthChange() {
+  const m = document.getElementById('globalMonth').value;
+  D.currentMonth = m; sv(D);
+  ['entryMonth','weekMonth','monthReportMonth','targetMonth'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = m;
+  });
+  refreshAll();
+}
+
+// ══════════════════════ FIXED COSTS ══════════════════════
+let fcChart;
+function getTotalFixed() { return D.fixedCosts.reduce((s,c)=>s+(+c.amt||0),0); }
+
+function renderFixedCosts() {
+  const list = document.getElementById('fcList');
+  const total = getTotalFixed();
+  document.getElementById('fc-total-badge').textContent = '৳'+fmtN(total);
+  document.getElementById('fc-grand-total').textContent = '৳'+fmtN(total);
+  list.innerHTML = '';
+  D.fixedCosts.forEach((fc,i) => {
+    const pct = total>0?Math.round(fc.amt/total*100):0;
+    const row = document.createElement('div');
+    row.className = 'fc-row';
+    row.innerHTML = `
+      <input value="${fc.name}" style="border:none;background:transparent;font-size:12px;font-weight:500;width:160px;outline:none;font-family:Inter;" onchange="D.fixedCosts[${i}].name=this.value;sv(D);renderFixedCosts();">
+      <div class="fc-bar-bg"><div class="fc-bar" style="width:${pct}%;background:${fc.color}"></div></div>
+      <span style="font-size:11px;color:var(--gray);min-width:32px;text-align:right">${pct}%</span>
+      <span class="fc-amt">৳<input type="number" value="${fc.amt}" onchange="D.fixedCosts[${i}].amt=+this.value;sv(D);renderFixedCosts();updateBE();showSave();" style="width:80px;border:none;font-size:12px;font-weight:600;font-family:Inter;background:transparent;text-align:right;outline:none;"></span>
+      <button onclick="D.fixedCosts.splice(${i},1);sv(D);renderFixedCosts();" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:14px;padding:0 4px">×</button>`;
+    list.appendChild(row);
+  });
+  renderFcChart();
+  updateBE();
+  renderBEAnalysis();
+}
+
+function addFixedCost() {
+  D.fixedCosts.push({name:'নতুন খরচ', amt:5000, color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});
+  sv(D); renderFixedCosts();
+}
+
+function renderFcChart() {
+  const ctx = document.getElementById('fcChart');
+  if(!ctx) return;
+  if(fcChart) fcChart.destroy();
+  fcChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: D.fixedCosts.map(c=>c.name),
+      datasets: [{data: D.fixedCosts.map(c=>c.amt), backgroundColor: D.fixedCosts.map(c=>c.color), borderWidth:3, borderColor:'#fff', hoverOffset:8}]
+    },
+    options: {cutout:'60%',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8,usePointStyle:true}},
+      tooltip:{callbacks:{label:c=>' '+c.label+': ৳'+fmtN(c.raw)}}}}
+  });
+}
+
+function renderBEAnalysis() {
+  const total = getTotalFixed();
+  const price = COURSE_PRICE_DEFAULT;
+  const beUnits = Math.ceil(total / price);
+  const beDaily = Math.ceil(beUnits / 30);
+  const el = document.getElementById('be-analysis');
+  if(!el) return;
+  el.innerHTML = `
+    <div class="metric amber"><div class="metric-val">৳${fmtN(total)}</div><div class="metric-label">মাসিক ব্রেক-ইভেন</div></div>
+    <div class="metric blue"><div class="metric-val">${beUnits}টি</div><div class="metric-label">ব্রেক-ইভেনে কোর্স সেল</div><div class="metric-delta">(৳${fmtN(price)} প্রতিটি)</div></div>
+    <div class="metric red"><div class="metric-val">${beDaily}টি</div><div class="metric-label">দৈনিক সেল দরকার</div><div class="metric-delta">ব্রেক-ইভেনের জন্য</div></div>
+    <div class="metric green"><div class="metric-val">৳${fmtN(Math.round(total/30))}</div><div class="metric-label">দৈনিক খরচ</div><div class="metric-delta">গড় হিসেবে</div></div>`;
+}
+
+// ══════════════════════ DAILY DATA ══════════════════════
+function getMonthKey(monthStr) { return 'sales_'+monthStr; }
+function getMonthData(monthStr) { return D.salesData[getMonthKey(monthStr)] || []; }
+function setMonthData(monthStr, data) { D.salesData[getMonthKey(monthStr)] = data; sv(D); }
+
+function getDaysInMonth(ym) {
+  const [y,m] = ym.split('-').map(Number);
+  return new Date(y,m,0).getDate();
+}
+
+function addNewDay() {
+  const month = document.getElementById('entryMonth').value;
+  const rows = getMonthData(month);
+  const [y,m] = month.split('-').map(Number);
+  const usedDays = rows.map(r=>r.day);
+  let day = 1;
+  while(usedDays.includes(day) && day <= getDaysInMonth(month)) day++;
+  if(day > getDaysInMonth(month)) { alert('এই মাসের সব দিন যোগ করা হয়েছে'); return; }
+  rows.push({day, units:0, price:COURSE_PRICE_DEFAULT, adCost:0, otherCost:0, note:''});
+  rows.sort((a,b)=>a.day-b.day);
+  setMonthData(month, rows);
+  renderDailyTable();
+  refreshAll();
+}
+
+function renderDailyTable() {
+  const month = document.getElementById('entryMonth')?.value || getCurrentMonth();
+  const rows = getMonthData(month);
+  const tbody = document.getElementById('dailyTbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  rows.forEach((r,i) => {
+    const rev = r.units * r.price;
+    const gross = rev - r.adCost - r.otherCost;
+    const roas = r.adCost > 0 ? (rev/r.adCost).toFixed(1) : '—';
+    const [y,m2] = month.split('-');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${r.day} ${MONTHS_BN[parseInt(m2)-1]}</strong></td>
+      <td><input type="number" value="${r.units}" min="0" onchange="updateRow('${month}',${i},'units',+this.value)" style="width:60px"></td>
+      <td><input type="number" value="${r.price}" min="0" onchange="updateRow('${month}',${i},'price',+this.value)" style="width:70px"></td>
+      <td style="color:var(--green);font-weight:600">৳${fmtN(rev)}</td>
+      <td><input type="number" value="${r.adCost}" min="0" onchange="updateRow('${month}',${i},'adCost',+this.value)" style="width:70px"></td>
+      <td><input type="number" value="${r.otherCost}" min="0" onchange="updateRow('${month}',${i},'otherCost',+this.value)" style="width:70px"></td>
+      <td style="color:${gross>=0?'var(--green)':'var(--red)'};font-weight:600">৳${fmtN(gross)}</td>
+      <td style="font-weight:600">${roas}${roas!=='—'?'×':''}</td>
+      <td><input value="${r.note||''}" onchange="updateRow('${month}',${i},'note',this.value)" style="width:80px" placeholder="নোট..."></td>
+      <td class="no-print"><button onclick="deleteRow('${month}',${i})" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:16px">×</button></td>`;
+    tbody.appendChild(tr);
+  });
+  updateDailyTotals(month, rows);
+}
+
+function updateRow(month, i, field, val) {
+  const rows = getMonthData(month);
+  if(rows[i]) { rows[i][field] = val; setMonthData(month, rows); }
+  renderDailyTable(); refreshAll();
+}
+function deleteRow(month, i) {
+  const rows = getMonthData(month);
+  rows.splice(i,1); setMonthData(month, rows);
+  renderDailyTable(); refreshAll();
+}
+
+function updateDailyTotals(month, rows) {
+  const totUnits = rows.reduce((s,r)=>s+r.units,0);
+  const totRev = rows.reduce((s,r)=>s+r.units*r.price,0);
+  const totAd = rows.reduce((s,r)=>s+r.adCost,0);
+  const totOther = rows.reduce((s,r)=>s+r.otherCost,0);
+  const totGross = totRev - totAd - totOther;
+  const totFixed = getTotalFixed();
+  const totNet = totGross - totFixed;
+  const totRoas = totAd>0?(totRev/totAd).toFixed(1)+'×':'—';
+  setText('tot-units',totUnits); setText('tot-rev','৳'+fmtN(totRev));
+  setText('tot-ad','৳'+fmtN(totAd)); setText('tot-other','৳'+fmtN(totOther));
+  setText('tot-gross','৳'+fmtN(totGross)); setText('tot-roas',totRoas);
+  setText('sum-gross','৳'+fmtN(totGross)); setText('sum-fixed','৳'+fmtN(totFixed));
+  setText('sum-net','৳'+fmtN(totNet));
+  const beEl = document.getElementById('sum-be');
+  if(beEl){
+    if(totGross>=totFixed){beEl.textContent='✅ অর্জিত';beEl.style.color='var(--green)';}
+    else{const rem=totFixed-totGross;beEl.textContent='৳'+fmtN(rem)+' বাকি';beEl.style.color='var(--red)';}
+  }
+}
+
+// ══════════════════════ MONTHLY SUMMARY ══════════════════════
+function getMonthSummary(monthStr) {
+  const rows = getMonthData(monthStr);
+  const units = rows.reduce((s,r)=>s+r.units,0);
+  const rev = rows.reduce((s,r)=>s+r.units*r.price,0);
+  const adCost = rows.reduce((s,r)=>s+r.adCost,0);
+  const otherCost = rows.reduce((s,r)=>s+r.otherCost,0);
+  const gross = rev - adCost - otherCost;
+  const fixed = getTotalFixed();
+  const net = gross - fixed;
+  const roas = adCost>0?(rev/adCost):0;
+  const days = rows.length;
+  return {units,rev,adCost,otherCost,gross,fixed,net,roas,days};
+}
+
+// ══════════════════════ AT A GLANCE ══════════════════════
+let glRevChart, glCostChart;
+function renderGlance() {
+  const month = getCurrentMonth();
+  const s = getMonthSummary(month);
+  const fixed = getTotalFixed();
+  setText('gl-revenue','৳'+fmtN(s.rev));
+  setText('gl-gross','৳'+fmtN(s.gross));
+  setText('gl-net', s.net>=0?'৳'+fmtN(s.net):'−৳'+fmtN(Math.abs(s.net)));
+  document.getElementById('gl-net').style.color = s.net>=0?'var(--dark)':'var(--red)';
+  setText('gl-units', s.units+'টি');
+  setText('gl-roas', s.roas>0?s.roas.toFixed(1)+'×':'০×');
+
+  // alerts
+  const alertEl = document.getElementById('glance-alerts');
+  alertEl.innerHTML = '';
+  const tgt = D.targets[month];
+  if(tgt && tgt.revenue > 0) {
+    const pct = Math.round(s.rev/tgt.revenue*100);
+    const today = 26; // current day
+    let alertClass='alert-blue', msg='';
+    if(pct>=100){alertClass='alert-green';msg='🎉 মাসিক রেভিনিউ টার্গেট অর্জিত হয়েছে!';}
+    else if(pct>=80){alertClass='alert-green';msg='✅ টার্গেটের খুব কাছে! '+pct+'% অর্জিত।';}
+    else if(pct>=50){alertClass='alert-amber';msg='⚠️ '+pct+'% অর্জিত। রান রেট বাড়াতে হবে।';}
+    else{alertClass='alert-red';msg='🚨 মাত্র '+pct+'% অর্জিত। টার্গেট মিস হওয়ার ঝুঁকি বেশি।';}
+    alertEl.innerHTML = `<div class="alert ${alertClass}">${msg}</div>`;
+  }
+  if(s.net<0){alertEl.innerHTML+=`<div class="alert alert-red">⚠️ এই মাসে ব্রেক-ইভেন হয়নি। আরও ৳${fmtN(Math.abs(s.net))} দরকার।</div>`;}
+  else if(s.net>0){alertEl.innerHTML+=`<div class="alert alert-green">✅ ব্রেক-ইভেন অর্জিত। নীট প্রফিট: ৳${fmtN(s.net)}</div>`;}
+
+  // charts
+  const months=[]; const revs=[]; const nets=[];
+  for(let y=2026;y<=2040;y++){
+    const start=y===2026?3:0; const end=11;
+    for(let m=start;m<=end;m++){
+      const key=y+'-'+String(m+1).padStart(2,'0');
+      months.push(MONTHS_EN[m]);
+      const sm=getMonthSummary(key);
+      revs.push(sm.rev); nets.push(sm.net);
+    }
+  }
+  const rCtx=document.getElementById('glRevChart');
+  if(glRevChart) glRevChart.destroy();
+  glRevChart = new Chart(rCtx,{type:'bar',data:{labels:months,datasets:[{label:'রেভিনিউ',data:revs,backgroundColor:'rgba(229,52,42,0.7)',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+
+  const cCtx=document.getElementById('glCostChart');
+  if(glCostChart) glCostChart.destroy();
+  glCostChart = new Chart(cCtx,{type:'line',data:{labels:months,datasets:[
+    {label:'রেভিনিউ',data:revs,borderColor:'#10B981',fill:false,tension:0.4,pointRadius:3},
+    {label:'নীট',data:nets,borderColor:'#E5342A',fill:false,tension:0.4,pointRadius:3,borderDash:[5,3]}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+
+  // target progress
+  const tpEl=document.getElementById('glTargetProg');
+  if(tgt){
+    const rp=Math.min(Math.round(s.rev/(tgt.revenue||1)*100),100);
+    const up=Math.min(Math.round(s.units/(tgt.units||1)*100),100);
+    tpEl.innerHTML=`
+      <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>রেভিনিউ</span><span>${rp}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${rp}%;background:${rp>=100?'var(--green)':rp>=70?'var(--amber)':'var(--red)'}"></div></div>
+      <div style="font-size:10px;color:var(--gray);margin-top:2px">৳${fmtN(s.rev)} / ৳${fmtN(tgt.revenue)}</div></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>কোর্স সেল</span><span>${up}%</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${up}%;background:${up>=100?'var(--green)':up>=70?'var(--amber)':'var(--red)'}"></div></div>
+      <div style="font-size:10px;color:var(--gray);margin-top:2px">${s.units}টি / ${tgt.units||0}টি</div></div>`;
+  } else { tpEl.innerHTML='<div style="font-size:12px;color:var(--gray)">টার্গেট সেট করা হয়নি। Target Setting প্যানেলে যান।</div>'; }
+
+  // breakeven
+  const beEl=document.getElementById('glBreakeven');
+  const bePct=fixed>0?Math.min(Math.round(s.gross/fixed*100),200):0;
+  beEl.innerHTML=`
+    <div style="font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:${s.gross>=fixed?'var(--green)':'var(--red)'}">${bePct}%</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:10px">ব্রেক-ইভেন কভারেজ</div>
+    <div class="prog-wrap"><div class="prog-bar" style="width:${Math.min(bePct,100)}%;background:${s.gross>=fixed?'var(--green)':'var(--red)'}"></div></div>
+    <div style="font-size:11px;margin-top:6px;color:${s.gross>=fixed?'var(--green)':'var(--red)'};font-weight:600">${s.gross>=fixed?'✅ ব্রেক-ইভেন অর্জিত':'⚠️ ব্রেক-ইভেন হয়নি'}</div>`;
+
+  // daily avg
+  const avgEl=document.getElementById('glDailyAvg');
+  const avgRev=s.days>0?Math.round(s.rev/s.days):0;
+  const avgUnits=s.days>0?(s.units/s.days).toFixed(1):0;
+  avgEl.innerHTML=`
+    <div style="margin-bottom:8px"><div style="font-size:11px;color:var(--gray)">গড় দৈনিক রেভিনিউ</div><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">৳${fmtN(avgRev)}</div></div>
+    <div style="margin-bottom:8px"><div style="font-size:11px;color:var(--gray)">গড় দৈনিক সেল</div><div style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif">${avgUnits}টি</div></div>
+    <div><div style="font-size:11px;color:var(--gray)">ডেটা আছে</div><div style="font-size:16px;font-weight:700">${s.days} দিন</div></div>`;
+}
+
+// ══════════════════════ DAILY REPORT ══════════════════════
+function renderDailyReport() {
+  const dateVal = document.getElementById('reportDate')?.value;
+  if(!dateVal) return;
+  const [y,m,d] = dateVal.split('-').map(Number);
+  const monthKey = y+'-'+String(m).padStart(2,'0');
+  const rows = getMonthData(monthKey);
+  const row = rows.find(r=>r.day===d);
+  const el = document.getElementById('daily-report-body');
+  if(!el) return;
+  if(!row){el.innerHTML=`<div class="alert alert-amber">এই তারিখের কোনো ডেটা নেই। Daily Entry তে ডেটা যোগ করুন।</div>`;return;}
+  const rev=row.units*row.price; const gross=rev-row.adCost-row.otherCost;
+  const roas=row.adCost>0?(rev/row.adCost).toFixed(2):'N/A';
+  el.innerHTML=`
+    <div style="background:var(--dark);color:white;padding:24px;border-radius:14px;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">RedLab Studios</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px">Daily Sales Report — ${d} ${MONTHS_BN[m-1]} ${y}</div>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div class="metric green"><div class="metric-val">৳${fmtN(rev)}</div><div class="metric-label">রেভিনিউ</div></div>
+      <div class="metric blue"><div class="metric-val">${row.units}টি</div><div class="metric-label">কোর্স সেল</div></div>
+      <div class="metric amber"><div class="metric-val">৳${fmtN(row.adCost)}</div><div class="metric-label">অ্যাড খরচ</div></div>
+      <div class="metric ${gross>=0?'green':'red'}"><div class="metric-val">৳${fmtN(gross)}</div><div class="metric-label">গ্রস প্রফিট</div></div>
+    </div>
+    <div class="card"><div class="card-title">বিস্তারিত</div>
+      <table><thead><tr><th>মেট্রিক</th><th>পরিমাণ</th></tr></thead><tbody>
+      <tr><td>কোর্স সংখ্যা</td><td>${row.units}টি</td></tr>
+      <tr><td>প্রতি কোর্স মূল্য</td><td>৳${fmtN(row.price)}</td></tr>
+      <tr><td>মোট রেভিনিউ</td><td>৳${fmtN(rev)}</td></tr>
+      <tr><td>অ্যাড খরচ</td><td>৳${fmtN(row.adCost)}</td></tr>
+      <tr><td>অন্যান্য খরচ</td><td>৳${fmtN(row.otherCost)}</td></tr>
+      <tr><td>গ্রস প্রফিট</td><td style="color:${gross>=0?'var(--green)':'var(--red)'}">৳${fmtN(gross)}</td></tr>
+      <tr><td>ROAS</td><td>${roas}${roas!=='N/A'?'×':''}</td></tr>
+      <tr><td>নোট</td><td>${row.note||'—'}</td></tr>
+      </tbody></table>
+    </div>`;
+}
+
+// ══════════════════════ WEEKLY REPORT ══════════════════════
+let weeklyBarChart;
+function renderWeekly() {
+  const month = document.getElementById('weekMonth')?.value || getCurrentMonth();
+  const rows = getMonthData(month);
+  const el = document.getElementById('weekly-body');
+  if(!el) return;
+  const weeks = [[],[],[],[],[]];
+  rows.forEach(r=>{const w=Math.min(Math.floor((r.day-1)/7),4); weeks[w].push(r);});
+  const weekSummaries = weeks.map((w,i)=>{
+    const units=w.reduce((s,r)=>s+r.units,0);
+    const rev=w.reduce((s,r)=>s+r.units*r.price,0);
+    const ad=w.reduce((s,r)=>s+r.adCost,0);
+    const other=w.reduce((s,r)=>s+r.otherCost,0);
+    const gross=rev-ad-other;
+    return {week:i+1,units,rev,ad,other,gross,days:w.length};
+  }).filter(w=>w.days>0);
+  const [y,m2]=month.split('-');
+  el.innerHTML=`
+    <div style="background:var(--dark);color:white;padding:20px 24px;border-radius:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">Weekly Report</div><div style="font-size:12px;color:rgba(255,255,255,0.4)">${MONTHS_BN[parseInt(m2)-1]} ${y} — RedLab Studios</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>সপ্তাহ</th><th>দিন</th><th>কোর্স সেল</th><th>রেভিনিউ</th><th>অ্যাড খরচ</th><th>গ্রস প্রফিট</th><th>দৈনিক গড়</th></tr></thead>
+        <tbody>${weekSummaries.map(w=>`<tr>
+          <td><strong>Week ${w.week}</strong></td><td>${w.days}</td><td>${w.units}টি</td>
+          <td>৳${fmtN(w.rev)}</td><td>৳${fmtN(w.ad)}</td>
+          <td style="color:${w.gross>=0?'var(--green)':'var(--red)'}">৳${fmtN(w.gross)}</td>
+          <td>৳${fmtN(w.days>0?Math.round(w.rev/w.days):0)}</td>
+        </tr>`).join('')}</tbody>
+        <tr class="tbl-total"><td>মোট</td><td>${weekSummaries.reduce((s,w)=>s+w.days,0)}</td>
+          <td>${weekSummaries.reduce((s,w)=>s+w.units,0)}টি</td>
+          <td>৳${fmtN(weekSummaries.reduce((s,w)=>s+w.rev,0))}</td>
+          <td>৳${fmtN(weekSummaries.reduce((s,w)=>s+w.ad,0))}</td>
+          <td>৳${fmtN(weekSummaries.reduce((s,w)=>s+w.gross,0))}</td><td>—</td>
+        </tr>
+      </table></div>
+    </div>
+    <div class="card"><div class="card-title">সাপ্তাহিক রেভিনিউ তুলনা</div>
+      <div class="chart-box"><canvas id="weeklyBarChart"></canvas></div>
+    </div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('weeklyBarChart');
+    if(!ctx) return;
+    if(weeklyBarChart) weeklyBarChart.destroy();
+    weeklyBarChart = new Chart(ctx,{type:'bar',data:{
+      labels:weekSummaries.map(w=>'Week '+w.week),
+      datasets:[
+        {label:'রেভিনিউ',data:weekSummaries.map(w=>w.rev),backgroundColor:'rgba(229,52,42,0.7)',borderRadius:6},
+        {label:'গ্রস প্রফিট',data:weekSummaries.map(w=>w.gross),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:6}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+        scales:{y:{ticks:{callback:v=>'৳'+fmtN(v)}}}}});
+  },100);
+}
+
+// ══════════════════════ MONTHLY REPORT ══════════════════════
+let monthlyLineChart;
+function renderMonthlyReport() {
+  const month = document.getElementById('monthReportMonth')?.value || getCurrentMonth();
+  const s = getMonthSummary(month);
+  const [y,m2] = month.split('-');
+  const rows = getMonthData(month);
+  const el = document.getElementById('monthly-body');
+  if(!el) return;
+  el.innerHTML=`
+    <div style="background:var(--dark);color:white;padding:24px;border-radius:14px;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Monthly Report</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4)">${MONTHS_BN[parseInt(m2)-1]} ${y} — RedLab Studios | Strategist: Mahmud Hasan Asif</div>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div class="metric red"><div class="metric-val">৳${fmtN(s.rev)}</div><div class="metric-label">মোট রেভিনিউ</div></div>
+      <div class="metric green"><div class="metric-val">৳${fmtN(s.gross)}</div><div class="metric-label">গ্রস প্রফিট</div></div>
+      <div class="metric ${s.net>=0?'amber':'red'}"><div class="metric-val">${s.net>=0?'৳':'−৳'}${fmtN(Math.abs(s.net))}</div><div class="metric-label">নীট প্রফিট</div></div>
+      <div class="metric blue"><div class="metric-val">${s.units}টি</div><div class="metric-label">কোর্স সেল</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title">দৈনিক ট্রেন্ড</div><div class="chart-box"><canvas id="monthlyLineChart"></canvas></div></div>
+      <div class="card"><div class="card-title">খরচ ব্রেকডাউন</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          ${[['অ্যাড খরচ',s.adCost,'#E5342A'],['অন্যান্য পরিবর্তনশীল খরচ',s.otherCost,'#F59E0B'],['ফিক্সড কস্ট',s.fixed,'#8B5CF6']].map(([l,v,c])=>`
+          <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>${l}</span><span style="font-weight:600">৳${fmtN(v)}</span></div>
+          <div class="prog-wrap"><div class="prog-bar" style="width:${s.rev>0?Math.min(Math.round(v/s.rev*100),100):0}%;background:${c}"></div></div></div>`).join('')}
+          <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between"><span style="font-weight:600">মোট খরচ</span><span style="font-weight:700">৳${fmtN(s.adCost+s.otherCost+s.fixed)}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">দৈনিক বিস্তারিত</div>
+      <div class="tbl-wrap"><table><thead><tr><th>দিন</th><th>সেল</th><th>রেভিনিউ</th><th>অ্যাড</th><th>গ্রস প্রফিট</th><th>ROAS</th><th>নোট</th></tr></thead>
+      <tbody>${rows.map(r=>{const rv=r.units*r.price;const gp=rv-r.adCost-r.otherCost;return`<tr><td>${r.day} ${MONTHS_BN[parseInt(m2)-1]}</td><td>${r.units}</td><td>৳${fmtN(rv)}</td><td>৳${fmtN(r.adCost)}</td><td style="color:${gp>=0?'var(--green)':'var(--red)'}">৳${fmtN(gp)}</td><td>${r.adCost>0?(rv/r.adCost).toFixed(1)+'×':'—'}</td><td>${r.note||'—'}</td></tr>`;}).join('')}</tbody>
+      </table></div>
+    </div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('monthlyLineChart');
+    if(!ctx) return;
+    if(monthlyLineChart) monthlyLineChart.destroy();
+    monthlyLineChart = new Chart(ctx,{type:'line',data:{
+      labels:rows.map(r=>r.day+''),
+      datasets:[{label:'রেভিনিউ',data:rows.map(r=>r.units*r.price),borderColor:'#E5342A',fill:true,backgroundColor:'rgba(229,52,42,0.07)',tension:0.4,pointRadius:3}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+  },100);
+}
+
+// ══════════════════════ QUARTERLY REPORT ══════════════════════
+let qChart;
+function renderQuarterly() {
+  const q = +document.getElementById('quarterSelect')?.value || 2;
+  const y = +document.getElementById('quarterYear')?.value || 2026;
+  const startM = (q-1)*3+1;
+  const months3 = [startM, startM+1, startM+2];
+  const el = document.getElementById('quarterly-body');
+  if(!el) return;
+  const summaries = months3.map(m=>{
+    const key = y+'-'+String(m).padStart(2,'0');
+    return {...getMonthSummary(key), month: MONTHS_BN[m-1]};
+  });
+  const totals = {rev:0,gross:0,net:0,units:0,ad:0};
+  summaries.forEach(s=>{totals.rev+=s.rev;totals.gross+=s.gross;totals.net+=s.net;totals.units+=s.units;totals.ad+=s.adCost;});
+  el.innerHTML=`
+    <div style="background:var(--dark);color:white;padding:24px;border-radius:14px;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">Q${q} ${y} — Quarterly Report</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">RedLab Studios | Strategist: Mahmud Hasan Asif</div>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div class="metric red"><div class="metric-val">৳${fmtN(totals.rev)}</div><div class="metric-label">ত্রৈমাসিক রেভিনিউ</div></div>
+      <div class="metric green"><div class="metric-val">৳${fmtN(totals.gross)}</div><div class="metric-label">গ্রস প্রফিট</div></div>
+      <div class="metric ${totals.net>=0?'amber':'red'}"><div class="metric-val">${totals.net>=0?'':'−'}৳${fmtN(Math.abs(totals.net))}</div><div class="metric-label">নীট প্রফিট</div></div>
+      <div class="metric blue"><div class="metric-val">${totals.units}টি</div><div class="metric-label">মোট কোর্স সেল</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title">মাসিক তুলনা</div><div class="chart-box"><canvas id="qChart"></canvas></div></div>
+      <div class="card"><div class="card-title">মাসওয়ারি সারসংক্ষেপ</div>
+        <div class="tbl-wrap"><table><thead><tr><th>মাস</th><th>সেল</th><th>রেভিনিউ</th><th>গ্রস</th><th>নীট</th></tr></thead>
+        <tbody>${summaries.map(s=>`<tr><td><strong>${s.month}</strong></td><td>${s.units}</td><td>৳${fmtN(s.rev)}</td><td>৳${fmtN(s.gross)}</td><td style="color:${s.net>=0?'var(--green)':'var(--red)'}">৳${fmtN(s.net)}</td></tr>`).join('')}
+        <tr class="tbl-total"><td>মোট</td><td>${totals.units}</td><td>৳${fmtN(totals.rev)}</td><td>৳${fmtN(totals.gross)}</td><td>৳${fmtN(totals.net)}</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('qChart');
+    if(!ctx) return;
+    if(qChart) qChart.destroy();
+    qChart = new Chart(ctx,{type:'bar',data:{
+      labels:summaries.map(s=>s.month),
+      datasets:[
+        {label:'রেভিনিউ',data:summaries.map(s=>s.rev),backgroundColor:'rgba(229,52,42,0.7)',borderRadius:6},
+        {label:'নীট প্রফিট',data:summaries.map(s=>s.net),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:6}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+        scales:{y:{ticks:{callback:v=>'৳'+fmtN(v)}}}}});
+  },100);
+}
+
+// ══════════════════════ TARGET SETTING ══════════════════════
+let targetChart, runRateChart;
+function renderTarget() {
+  const month = document.getElementById('targetMonth')?.value || getCurrentMonth();
+  const tgt = D.targets[month] || {revenue:0, units:0, adBudget:0, netProfit:0};
+  const s = getMonthSummary(month);
+  const [y,m2]=month.split('-');
+  const today = month==='2026-04'?26:getDaysInMonth(month);
+  const daysLeft = getDaysInMonth(month)-today;
+  const reachablePct = today>0?Math.round((s.rev/today)*(getDaysInMonth(month))/Math.max(tgt.revenue,1)*100):0;
+
+  // alerts based on date milestones
+  const alertEl = document.getElementById('target-alerts');
+  alertEl.innerHTML='';
+  if(tgt.revenue>0){
+    const pct=Math.round(s.rev/tgt.revenue*100);
+    if(s.rev>=tgt.revenue){
+      document.getElementById('congrats-box').classList.add('show');
+      document.getElementById('congrats-sub').textContent=`৳${fmtN(s.rev)} রেভিনিউ অর্জিত! টার্গেট ছিল ৳${fmtN(tgt.revenue)}।`;
+    } else {
+      document.getElementById('congrats-box').classList.remove('show');
+    }
+    const checkDays=[15,20,25];
+    checkDays.forEach(d=>{
+      if(today>=d){
+        const dailyAvg=s.days>0?s.rev/s.days:0;
+        const proj=Math.round(dailyAvg*getDaysInMonth(month));
+        const projPct=Math.round(proj/tgt.revenue*100);
+        let cls='alert-blue',msg='';
+        if(projPct>=100){cls='alert-green';msg=`📅 ${d} তারিখের রেট অনুযায়ী টার্গেট অর্জনের সম্ভাবনা বেশি (প্রজেকশন: ৳${fmtN(proj)}, ${projPct}%)`;}
+        else if(projPct>=80){cls='alert-amber';msg=`📅 ${d} তারিখে ${pct}% অর্জিত। বর্তমান রেটে টার্গেটের কাছাকাছি যাবে।`;}
+        else{cls='alert-red';msg=`📅 ${d} তারিখে মাত্র ${pct}% অর্জিত। বর্তমান রেটে টার্গেট মিস হওয়ার সম্ভাবনা বেশি।`;}
+        alertEl.innerHTML+=`<div class="alert ${cls}">${msg}</div>`;
+      }
+    });
+  }
+
+  // inputs
+  document.getElementById('target-inputs').innerHTML=`
+    <div class="target-input-row"><span class="target-label">রেভিনিউ টার্গেট (৳)</span>
+      <input type="number" class="target-input" value="${tgt.revenue||''}" placeholder="৳ লক্ষ্য" onchange="saveTgt('${month}','revenue',+this.value)"></div>
+    <div class="target-input-row"><span class="target-label">কোর্স সেল টার্গেট (সংখ্যা)</span>
+      <input type="number" class="target-input" value="${tgt.units||''}" placeholder="টার্গেট সংখ্যা" onchange="saveTgt('${month}','units',+this.value)"></div>
+    <div class="target-input-row"><span class="target-label">অ্যাড বাজেট টার্গেট (৳)</span>
+      <input type="number" class="target-input" value="${tgt.adBudget||''}" placeholder="বাজেট" onchange="saveTgt('${month}','adBudget',+this.value)"></div>
+    <div class="target-input-row"><span class="target-label">নীট প্রফিট টার্গেট (৳)</span>
+      <input type="number" class="target-input" value="${tgt.netProfit||''}" placeholder="নীট প্রফিট লক্ষ্য" onchange="saveTgt('${month}','netProfit',+this.value)"></div>`;
+
+  // tracking
+  const metrics=[
+    ['রেভিনিউ',s.rev,tgt.revenue,'৳'],
+    ['কোর্স সেল',s.units,tgt.units,''],
+    ['অ্যাড খরচ',s.adCost,tgt.adBudget,'৳'],
+    ['নীট প্রফিট',s.net,tgt.netProfit,'৳'],
+  ];
+  document.getElementById('target-tracking').innerHTML=metrics.map(([l,cur,t,pfx])=>{
+    const pct=t>0?Math.min(Math.round(cur/t*100),100):0;
+    const col=pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="font-weight:500">${l}</span>
+        <span><strong style="color:${col}">${pct}%</strong> — ${pfx}${fmtN(cur)} / ${pfx}${fmtN(t||0)}</span>
+      </div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+
+  // charts
+  setTimeout(()=>{
+    const ctx1=document.getElementById('targetChart');
+    if(ctx1){
+      if(targetChart) targetChart.destroy();
+      targetChart=new Chart(ctx1,{type:'bar',data:{
+        labels:['রেভিনিউ','সেল (×1000)','নীট প্রফিট'],
+        datasets:[
+          {label:'টার্গেট',data:[tgt.revenue||0,(tgt.units||0)*1000,tgt.netProfit||0],backgroundColor:'rgba(229,52,42,0.3)',borderColor:'#E5342A',borderWidth:2,borderRadius:6},
+          {label:'অর্জিত',data:[s.rev,s.units*1000,s.net],backgroundColor:'rgba(16,185,129,0.7)',borderRadius:6}
+        ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>'৳'+fmtN(v)}}}}});
+    }
+    const ctx2=document.getElementById('runRateChart');
+    if(ctx2){
+      if(runRateChart) runRateChart.destroy();
+      const rows=getMonthData(month);
+      let cumRev=0;
+      const cumData=rows.map(r=>{cumRev+=r.units*r.price;return cumRev;});
+      const dailyAvg=rows.length>0?cumRev/rows.length:0;
+      const projLabels=[...rows.map(r=>r.day+'')];
+      const projData=[...cumData];
+      const lastDay=rows.length>0?rows[rows.length-1].day:0;
+      for(let d=lastDay+1;d<=getDaysInMonth(month);d++){projLabels.push(d+'');projData.push(null);}
+      const projLine=projLabels.map((_,i)=>Math.round(dailyAvg*(i+1)));
+      runRateChart=new Chart(ctx2,{type:'line',data:{
+        labels:projLabels,
+        datasets:[
+          {label:'অর্জিত',data:projData,borderColor:'#10B981',fill:false,tension:0.3,pointRadius:2},
+          {label:'প্রজেকশন',data:projLine,borderColor:'#E5342A',borderDash:[5,4],fill:false,tension:0.3,pointRadius:0},
+          {label:'টার্গেট',data:projLabels.map(()=>tgt.revenue||null),borderColor:'#8B5CF6',borderDash:[3,3],fill:false,pointRadius:0}
+        ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+          scales:{x:{ticks:{maxTicksLimit:10,font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+    }
+  },100);
+}
+
+function saveTgt(month, field, val) {
+  if(!D.targets[month]) D.targets[month]={};
+  D.targets[month][field]=val; sv(D);
+  showSave(); renderTarget(); renderGlance();
+}
+
+// ══════════════════════ PRINT/EXPORT ══════════════════════
+function printSection(id) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      body{font-family:Arial,sans-serif;padding:20px;color:#0F0F0F;background:white;}
+      .no-print{display:none!important;}
+      table{width:100%;border-collapse:collapse;font-size:12px;}
+      th,td{padding:8px;border:1px solid #ddd;text-align:left;}
+      th{background:#f5f5f5;font-weight:600;}
+      .g2,.g3,.g4,.g5{display:flex;flex-wrap:wrap;gap:12px;}
+      .g2>*,.g3>*,.g4>*,.g5>*{flex:1;min-width:150px;}
+      .metric,.card{border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:10px;}
+      .metric-val{font-size:20px;font-weight:800;}
+      .metric-label{font-size:11px;color:#666;}
+      .card-title{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;margin-bottom:10px;}
+      @media print{canvas{max-width:100%;}}
+    </style></head><body>${el.innerHTML}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>{ win.print(); }, 500);
+}
+
+// ══════════════════════ PANEL NAV ══════════════════════
+const panelTitles = {
+  glance:['At a Glance','সামগ্রিক পারফরম্যান্স ওভারভিউ'],
+  daily:['Daily Entry','প্রতিদিনের সেলস ও বিজ্ঞাপন খরচ এন্ট্রি'],
+  daily_report:['Daily Report','নির্দিষ্ট তারিখের রিপোর্ট'],
+  weekly:['Weekly Report','সাপ্তাহিক পারফরম্যান্স'],
+  monthly:['Monthly Report','মাসিক বিস্তারিত রিপোর্ট'],
+  quarterly:['Quarterly Report','ত্রৈমাসিক বিশ্লেষণ'],
+  fixed_cost:['Fixed Cost','মাসিক ফিক্সড কস্ট ও ব্রেক-ইভেন'],
+  target:['Target Setting','মাসিক টার্গেট ও ট্র্যাকিং'],
+};
+window.showPanel = function showPanel(id, navEl) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id)?.classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  const t=panelTitles[id]||[id,''];
+  document.getElementById('pageTitle').textContent=t[0];
+  document.getElementById('pageSub').textContent=t[1];
+  renderPanel(id);
+}
+function renderPanel(id){
+  if(id==='glance') renderGlance();
+  else if(id==='daily') renderDailyTable();
+  else if(id==='daily_report') renderDailyReport();
+  else if(id==='weekly') renderWeekly();
+  else if(id==='monthly') renderMonthlyReport();
+  else if(id==='quarterly') renderQuarterly();
+  else if(id==='fixed_cost') renderFixedCosts();
+  else if(id==='target') renderTarget();
+}
+function refreshAll(){
+  const active=document.querySelector('.panel.active');
+  if(active) renderPanel(active.id.replace('panel-',''));
+}
+function updateBE(){
+  renderBEAnalysis();
+  // refresh glance if active
+  const active = document.querySelector('.panel.active');
+  if(active && active.id === 'panel-glance') renderGlance();
+}
+
+// ══════════════════════ EDITABLE TEXT ══════════════════════
+let curEditEl=null;
+const PESV=`<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+function openEdit(el){
+  curEditEl=el;
+  let txt='';
+  el.childNodes.forEach(n=>{if(n.nodeType===3)txt+=n.textContent;});
+  document.getElementById('etxt').value=txt.trim();
+  document.getElementById('emod').classList.add('open');
+  document.getElementById('eov').classList.add('open');
+  document.getElementById('etxt').focus();
+  event&&event.stopPropagation();
+}
+function closeEdit(){document.getElementById('emod').classList.remove('open');document.getElementById('eov').classList.remove('open');curEditEl=null;}
+function saveEdit(){
+  if(!curEditEl) return;
+  const key=curEditEl.dataset.key; const val=document.getElementById('etxt').value;
+  const btn=curEditEl.querySelector('.ep');
+  curEditEl.innerHTML='';
+  curEditEl.appendChild(document.createTextNode(val));
+  if(btn) curEditEl.appendChild(btn);
+  else{const nb=document.createElement('button');nb.className='ep';nb.setAttribute('onclick','openEdit(this.parentElement)');nb.innerHTML=PESV;curEditEl.appendChild(nb);}
+  if(key){D.texts[key]=val;sv(D);}
+  showSave();closeEdit();
+}
+function loadSavedTexts(){
+  document.querySelectorAll('.editable[data-key]').forEach(el=>{
+    const key=el.dataset.key;
+    if(D.texts[key]!==undefined){
+      const btn=el.querySelector('.ep');
+      el.innerHTML='';
+      el.appendChild(document.createTextNode(D.texts[key]));
+      if(btn) el.appendChild(btn);
+    }
+  });
+}
+
+// ══════════════════════ SAVE BAR ══════════════════════
+let saveTimer;
+function showSave(msg='পরিবর্তন সেভ হয়েছে'){
+  const b=document.getElementById('saveBar'),d=document.getElementById('sdot'),m=document.getElementById('saveMsg');
+  d.className='sdot saving';m.textContent='সেভ হচ্ছে...';b.classList.add('show');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{d.className='sdot';m.textContent=msg;setTimeout(()=>b.classList.remove('show'),2000);},700);
+}
+
+// ══════════════════════ STYLUS ══════════════════════
+const dc=document.getElementById('draw-canvas');
+const dctx=dc.getContext('2d');
+let isDrawing=false,sTl="pen",sClr="#E5342A",brushSz=3,sOpa=1,sExp=false,sLx,sLy;
+function resizeDC(){dc.width=window.innerWidth;dc.height=window.innerHeight;}
+window.addEventListener('resize',resizeDC);resizeDC();
+function getXY(e){const r=dc.getBoundingClientRect();if(e.touches)return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function sStart(e){if(sTl==='select')return;isDrawing=true;const p=getXY(e);sLx=p.x;sLy=p.y;dctx.beginPath();dctx.moveTo(sLx,sLy);e.preventDefault();}
+function sDraw(e){if(!isDrawing)return;const p=getXY(e);
+  dctx.globalAlpha=sOpa;
+  if(sTl==='eraser'){dctx.globalCompositeOperation='destination-out';dctx.lineWidth=brushSz*4;}
+  else{dctx.globalCompositeOperation='source-over';dctx.strokeStyle=sClr;dctx.lineWidth=sTl==='marker'?brushSz*3:brushSz;if(sTl==='marker')dctx.globalAlpha=sOpa*0.5;}
+  dctx.lineCap='round';dctx.lineJoin='round';
+  dctx.lineTo(p.x,p.y);dctx.stroke();dctx.beginPath();dctx.moveTo(p.x,p.y);
+  sLx=p.x;sLy=p.y;e.preventDefault();}
+function sEnd(){if(!isDrawing)return;isDrawing=false;dctx.globalCompositeOperation='source-over';dctx.globalAlpha=1;
+  D.drawing=dc.toDataURL();sv(D);showSave('ড্রয়িং সেভ হয়েছে');}
+dc.addEventListener('mousedown',sStart);dc.addEventListener('mousemove',sDraw);dc.addEventListener('mouseup',sEnd);
+dc.addEventListener('touchstart',sStart,{passive:false});dc.addEventListener('touchmove',sDraw,{passive:false});dc.addEventListener('touchend',sEnd);
+dc.addEventListener('pointermove',e=>{if(e.pointerType==='pen'&&isDrawing){dctx.lineWidth=(sTl==='marker'?brushSz*3:brushSz)*(e.pressure||0.5)*2;}});
+function sTool(t){sTl=t;['pen','marker','eraser','select'].forEach(x=>{const b=document.getElementById('s'+x);if(b)b.classList.remove('on');});
+  const ab=document.getElementById('s'+t);if(ab)ab.classList.add('on');
+  if(t==='select'){dc.classList.remove('active','eraser-mode');}else if(t==='eraser'){dc.classList.add('active','eraser-mode');}else{dc.classList.add('active');dc.classList.remove('eraser-mode');}}
+function sCol(el){document.querySelectorAll('.sp-col').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');sClr=el.dataset.c;}
+function setBrushSz(v){brushSz=+v;document.getElementById('szv').textContent=v;}
+function setBrushOp(v){sOpa=v/100;document.getElementById('opv').textContent=v;}
+function clearDraw(){if(!confirm('সব ড্রয়িং মুছবেন?'))return;dctx.clearRect(0,0,dc.width,dc.height);D.drawing='';sv(D);showSave('ড্রয়িং মুছে গেছে');}
+function toggleSP(){sExp=!sExp;const p=document.getElementById('spanel'),b=document.getElementById('sp-body'),t=document.getElementById('sptog'),c=document.getElementById('spcompact'),tt=document.getElementById('sptitle');
+  if(sExp){p.classList.add('exp');b.style.display='block';c.style.display='none';t.textContent='⟨';tt.textContent='✏️ Stylus';}
+  else{p.classList.remove('exp');b.style.display='none';c.style.display='flex';t.textContent='⟩';tt.textContent='✏️';}}
+if(D.drawing){const img=new Image();img.onload=()=>dctx.drawImage(img,0,0);img.src=D.drawing;}
+
+// ══════════════════════ HELPERS ══════════════════════
+function fmtN(n){
+  if(!n&&n!==0)return'0';
+  const s=n<0?'-':'';
+  const abs=Math.abs(Math.round(n));
+  if(abs>=10000000){const v=abs/1000000;return s+(v%1===0?v.toFixed(0):(Math.round(v*100)/100).toFixed(2))+'কোটি';}
+  if(abs>=100000){const v=abs/100000;return s+(v%1===0?v.toFixed(0):(Math.round(v*10)/10).toFixed(1))+'লাখ';}
+  return s+abs.toLocaleString('en-IN');
+}
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+// ══════════════════════ INIT ══════════════════════
+window.addEventListener('load',()=>{
+  initSelectors();
+  loadSavedTexts();
+  renderFixedCosts();
+  renderDailyTable();
+  renderGlance();
+
+  // restore saved budget values
+  if(D.fixedCosts) renderFixedCosts();
+
+  // set today badge
+  document.getElementById('todayBadge').textContent='আজ: ২৬ এপ্রিল ২০২৬';
+});
+
+// Ensure all functions are globally accessible
+window.addNewDay = addNewDay;
+window.renderDailyTable = renderDailyTable;
+window.renderDailyReport = renderDailyReport;
+window.renderWeekly = renderWeekly;
+window.renderMonthlyReport = renderMonthlyReport;
+window.renderQuarterly = renderQuarterly;
+window.renderFixedCosts = renderFixedCosts;
+window.addFixedCost = addFixedCost;
+window.renderTarget = renderTarget;
+window.saveTgt = saveTgt;
+window.updateRow = updateRow;
+window.deleteRow = deleteRow;
+window.onMonthChange = onMonthChange;
+window.printSection = printSection;
+window.openEdit = openEdit;
+window.closeEdit = closeEdit;
+window.saveEdit = saveEdit;
+window.sTool = sTool;
+window.sCol = sCol;
+window.setBrushSz = setBrushSz;
+window.setBrushOp = setBrushOp;
+window.clearDraw = clearDraw;
+window.toggleSP = toggleSP;
+
+</script>
+</body>
+</html>
