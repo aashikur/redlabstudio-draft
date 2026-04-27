@@ -781,50 +781,91 @@ footer{background:#060606;padding:28px 20px;text-align:center;border-top:1px sol
 <div style="background:#040404;padding:10px 20px;text-align:center;"><span style="font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:.05em">Landing Page Design by <strong style="color:rgba(229,52,42,0.5)">Ads Marketers</strong></span></div>
 </footer>
 
-<div id="navbar-container"></div>
-    <div class="container">
-        <!-- ...existing page content... -->
-    </div>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        .navbar {
-            background: #222;
-            color: #fff;
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .navbar h1 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-        .nav-links a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.2s;
-        }
-        .nav-links a:hover {
-            color: #ff9800;
-        }
-        .container {
-            padding: 2rem;
-            text-align: center;
-        }
-    </style>
-    <script>
-      window.addEventListener('DOMContentLoaded', function() {
-        fetch('navbar.html')
-          .then(response => response.text())
-          .then(data => {
-            document.getElementById('navbar-container').innerHTML = data;
-          });
-      });
-    </script>
+<script>
+// ── VSL PLAYER ──
+function playVSL(){
+  const container = document.getElementById('vslContainer');
+  const thumb = document.getElementById('vslThumb');
+  thumb.style.display = 'none';
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube-nocookie.com/embed/WBd4yC7tP_4?si=HvMj-K7Jc1SxKiAF&autoplay=1&rel=0';
+  iframe.title = 'Voice of Dhaka Video Editing Course';
+  iframe.frameBorder = '0';
+  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+  iframe.allowFullscreen = true;
+  iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
+  container.appendChild(iframe);
+}
+
+// ── FORM SUBMIT ──
+function submitForm(id){
+  const prefixMap = {'hero':'h','main':'m','v1':'v1','v2':'v2'};
+  const prefix = prefixMap[id] || id;
+  const nameEl = document.getElementById(prefix+'-name'); const name = nameEl ? nameEl.value.trim() : '';
+  const emailEl = document.getElementById(prefix+'-email'); const email = emailEl ? emailEl.value.trim() : '';
+  const phoneEl = document.getElementById(prefix+'-phone'); const phone = phoneEl ? phoneEl.value.trim() : '';
+  if(!name){alert('নাম দিন');return;}
+  if(!email||!email.includes('@')){alert('সঠিক ইমেইল দিন');return;}
+  if(!phone){alert('ফোন নম্বর দিন');return;}
+  // Show success modal
+  document.getElementById('successModal').classList.add('open');
+  // Here you'd send to your backend/email service
+}
+
+function closeModal(){
+  document.getElementById('successModal').classList.remove('open');
+}
+
+// ── SCROLL TO FORM ──
+function scrollToForm(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ── FAQ TOGGLE ──
+function toggleFAQ(el){
+  const item = el.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!wasOpen) item.classList.add('open');
+}
+
+// ── COUNTDOWN TIMER ──
+(function(){
+  // Set deadline: 3 days from now (stored in localStorage)
+  let deadline = localStorage.getItem('vod_deadline');
+  if(!deadline){
+    const d = new Date();
+    d.setDate(d.getDate()+3);
+    deadline = d.getTime();
+    localStorage.setItem('vod_deadline',deadline);
+  }
+  function updateTimer(){
+    const now = Date.now();
+    const diff = Math.max(0, deadline - now);
+    const h = Math.floor(diff/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    const s = Math.floor((diff%60000)/1000);
+    document.getElementById('countdown').textContent =
+      String(h).padStart(2,'0')+' : '+String(m).padStart(2,'0')+' : '+String(s).padStart(2,'0');
+    if(diff>0) requestAnimationFrame(updateTimer);
+    else document.getElementById('countdown').textContent = 'অফার শেষ!';
+  }
+  updateTimer();
+})();
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});
+},{threshold:0.12});
+reveals.forEach(r=>observer.observe(r));
+
+// ── CLOSE MODAL ON OVERLAY CLICK ──
+document.getElementById('successModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+</script>
 </body>
 </html>
