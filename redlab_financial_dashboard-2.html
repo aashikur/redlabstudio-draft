@@ -759,7 +759,7 @@ function renderGlance() {
   const rCtx=document.getElementById('glRevChart');
   if(glRevChart) glRevChart.destroy();
   glRevChart = new Chart(rCtx,{type:'bar',data:{labels:months,datasets:[{label:'রেভিনিউ',data:revs,backgroundColor:'rgba(229,52,42,0.7)',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}});
 
   const cCtx=document.getElementById('glCostChart');
   if(glCostChart) glCostChart.destroy();
@@ -767,7 +767,7 @@ function renderGlance() {
     {label:'রেভিনিউ',data:revs,borderColor:'#10B981',fill:false,tension:0.4,pointRadius:3},
     {label:'নীট',data:nets,borderColor:'#E5342A',fill:false,tension:0.4,pointRadius:3,borderDash:[5,3]}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
-    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}}});
+    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:v=>'৳'+fmtN(v),font:{size:9}}}}});
 
   // target progress
   const tpEl=document.getElementById('glTargetProg');
@@ -913,7 +913,7 @@ function renderMonthlyReport() {
     <div class="g4" style="margin-bottom:16px">
       <div class="metric red"><div class="metric-val">৳${fmtN(s.rev)}</div><div class="metric-label">মোট রেভিনিউ</div></div>
       <div class="metric green"><div class="metric-val">৳${fmtN(s.gross)}</div><div class="metric-label">গ্রস প্রফিট</div></div>
-      <div class="metric ${s.net>=0?'amber':'red'}"><div class="metric-val">${s.net>=0?'৳':'−৳'}${fmtN(Math.abs(s.net))}</div><div class="metric-label">নীট প্রফিট</div></div>
+      <div class="metric ${s.net>=0?'amber':'red'}"><div class="metric-val">${s.net>=0?'':'−'}৳${fmtN(Math.abs(s.net))}</div><div class="metric-label">নীট প্রফিট</div></div>
       <div class="metric blue"><div class="metric-val">${s.units}টি</div><div class="metric-label">কোর্স সেল</div></div>
     </div>
     <div class="g2" style="margin-bottom:16px">

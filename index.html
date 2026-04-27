@@ -5,40 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Navigation</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #181c24 0%, #232a34 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
         .navbar {
-            background: #222;
+            background: rgba(30, 34, 44, 0.85);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 1.5rem;
+            margin: 2rem auto 2.5rem auto;
+            max-width: 900px;
             color: #fff;
-            padding: 1rem 2rem;
+            padding: 1.2rem 2.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: box-shadow 0.3s;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            animation: fadeInDown 1s cubic-bezier(.77,0,.18,1) 0.1s both;
         }
         .navbar h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #f7f7fa;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            opacity: 0.92;
         }
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 1.2rem;
         }
         .nav-links a {
-            color: #fff;
+            color: #e0e0e0;
             text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.2s;
+            font-size: 0.98rem;
+            font-weight: 500;
+            padding: 0.45rem 1.1rem;
+            border-radius: 1.2rem;
+            background: rgba(255,255,255,0.04);
+            box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.08);
+            transition: background 0.25s, color 0.25s, box-shadow 0.25s, transform 0.18s;
+            letter-spacing: 0.01em;
+            backdrop-filter: blur(4px);
+            opacity: 0.92;
+            font-variant: small-caps;
         }
         .nav-links a:hover {
-            color: #ff9800;
+            background: linear-gradient(90deg, #ff9800 0%, #ff5e62 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px 0 rgba(255, 152, 0, 0.18);
+            transform: translateY(-2px) scale(1.04);
         }
         .container {
-            padding: 2rem;
+            padding: 3.5rem 2rem 2rem 2rem;
             text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(30, 34, 44, 0.55);
+            border-radius: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255,255,255,0.07);
+            animation: fadeInUp 1.2s cubic-bezier(.77,0,.18,1) 0.2s both;
+        }
+        .container h2 {
+            font-size: 2.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .container p {
+            font-size: 1.05rem;
+            color: #e0e0e0;
+            opacity: 0.85;
+            margin-bottom: 0;
+            font-weight: 400;
+        }
+        @keyframes fadeInDown {
+            0% { opacity: 0; transform: translateY(-40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 700px) {
+            .navbar, .container { max-width: 98vw; padding: 1rem 1vw; }
+            .nav-links { gap: 0.5rem; }
+            .nav-links a { font-size: 0.93rem; padding: 0.4rem 0.7rem; }
         }
     </style>
 </head>
 <body>
-    <div id="navbar-container"></div>
+    <nav class="navbar">
+        <h1>Home Navigation</h1>
+        <div class="nav-links">
+            <a href="redlab-pc-guide.html">PC Guide 1</a>
+            <a href="redlab-pc-guide-v2.html">PC Guide 2</a>
+            <a href="redlab_financial_dashboard-2.html">Dashboard 1</a>
+            <a href="vod_free_dashboard.html">Dashboard 2</a>
+            <a href="vod_variant_A_direct_purchase.html">Landing 1</a>
+            <a href="vod_variant_B_free_class.html">Landing 2</a>
+        </div>
+    </nav>
     <div class="container">
         <h2>Welcome!</h2>
         <p>Select a page from the navigation bar above.</p>
