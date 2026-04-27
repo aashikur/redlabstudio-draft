@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Navigation</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@400;500;700&display=swap');
         body {
-            font-family: 'Inter', Arial, sans-serif;
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #181c24 0%, #232a34 100%);
@@ -25,24 +25,30 @@
             color: #fff;
             padding: 1.2rem 2.5rem;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             transition: box-shadow 0.3s;
             border: 1.5px solid rgba(255,255,255,0.08);
             animation: fadeInDown 1s cubic-bezier(.77,0,.18,1) 0.1s both;
         }
         .navbar h1 {
-            margin: 0;
+            margin: 0 0 0.5rem 0;
             font-size: 1.2rem;
             font-weight: 700;
             letter-spacing: 0.04em;
             color: #f7f7fa;
             text-shadow: 0 2px 8px rgba(0,0,0,0.18);
             opacity: 0.92;
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
         }
         .nav-links {
             display: flex;
+            flex-wrap: wrap;
             gap: 1.2rem;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
         }
         .nav-links a {
             color: #e0e0e0;
@@ -58,6 +64,7 @@
             backdrop-filter: blur(4px);
             opacity: 0.92;
             font-variant: small-caps;
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
         }
         .nav-links a:hover {
             background: linear-gradient(90deg, #ff9800 0%, #ff5e62 100%);
@@ -77,6 +84,7 @@
             -webkit-backdrop-filter: blur(12px);
             border: 1.5px solid rgba(255,255,255,0.07);
             animation: fadeInUp 1.2s cubic-bezier(.77,0,.18,1) 0.2s both;
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
         }
         .container h2 {
             font-size: 2.1rem;
@@ -85,6 +93,7 @@
             color: #fff;
             letter-spacing: 0.02em;
             text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
         }
         .container p {
             font-size: 1.05rem;
@@ -92,6 +101,7 @@
             opacity: 0.85;
             margin-bottom: 0;
             font-weight: 400;
+            font-family: 'Baloo Da 2', cursive, Arial, sans-serif;
         }
         @keyframes fadeInDown {
             0% { opacity: 0; transform: translateY(-40px); }
